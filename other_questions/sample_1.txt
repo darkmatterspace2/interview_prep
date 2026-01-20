@@ -1,0 +1,503 @@
+tbl movie
+
+name colletion
+
+select name from
+(select name, collection, denserank over (partition by name, order by collection desc) as rnk
+from movie) where rnk=9;
+
+select top(1)
+from
+(
+select top(9), * from movie
+order by collection desc 
+) order by collection
+
+
+stu_id 	mark
+1	36
+1	36
+1	38
+1	39
+1	40
+
+student_df1=student.select("").orderby(col('marks').asc()
+student_df1.
+
+
+
+A 	B 	C
+11 	1 	1
+4	4	4
+8	4	4
+1	1	1
+
+df1=df.withColumn(when(col('A')+col('B')+col('C') <= 10,lit('Unbreached')).otherwise(lit('Breached')))
+show(df1)
+
+
+
+
+
+String : abc
+
+str1=[]
+
+
+df1=spark.read.csv("filepath/filename",header=false)
+
+df2=df1.split(" ")
+df2.
+
+
+
+
+
+1. Broadcast Joins
+2. Cache - Disk only, Memory
+3. Partitioning and Bucketing
+4. Data Skewness - Repartioning - even distribute 
+5. Reso
+
+
+Total Memomry - 64 GB
+75-80 - Executor Node  - object 
+10-20 Driver node
+
+
+
+1. Merge sort Join -- join based on keys - 
+2. Shuffle join -- 
+
+
+Submit jobs
+
+-logical Plan
+- Catalyst opitimizer
+- physical plan 
+- Exec
+
+date
+
+sql
+
+
+
+Cust	Year	Total Billing 
+Ankit	2020	100
+Ankit	2021	110
+Ankit	2022	140
+Amit	2020	100
+Amit	2021	120
+Amit	2022	110
+Gaurav	2021	70
+Gaurav	2022	90
+
+
+Cust	Year	Total Billing billing_flg dense_rnk
+Ankit	2020	100		inc		1
+Ankit	2021	110		inc		2
+Ankit	2022	140		inc		3
+Amit	2020	100				1
+Amit	2021	120				2
+Amit	2022	110		desc				3
+Gaurav	2021	70
+Gaurav	2022	90
+
+select cust, case when billing_dif > 0 then "increase" else "decrease" as billing_flg
+(
+
+select cust, lag(Total_billng) as previous_total, total billing -  lag(Total_billng) as Billinh_dif
+from table1
+)
+group by cust, billing_dif
+having billing_dif="inc"
+
+select 
+
+
+emp
+id	values flg
+1	10	P
+2	-9	N
+3	7
+4	6
+5	5
+6	5
+7	-8
+8	-4
+ 
+
+
+select sum(values)
+(
+select id, values, 
+case when values > 0
+	then "P" as flg
+else
+	"N" as flg
+
+)
+where flg=P
+union
+select sum(values)
+(
+select id, values, 
+case when values > 0
+	then "P" as flg
+else
+	"N" as flg
+
+)
+where flg=N
+
+
+Hi Himanshu Welcome to Jio
+
+
+var1="Hi Himanshu Welcome to Jio"
+
+var_split=var1.split(" ")
+
+count_word=0
+
+for word in var_split
+	
+
+display(count_word)
+
+reverse_var=""
+
+for i in range(len(var1)-1,0)
+	reverse_var+=
+
+
+a=2
+b=a
+a=3
+
+print (b)
+2
+
+
+2 files
+
+diff file1 file2
+
+md5 file1
+
+sed -i "s/himanshu/othernam/g" filename
+
+
+Netflix
+
+unique monthly user
+user_id,rtc_epoch_time,
+Himanshu	122424
+Himanshu	532424
+abc		244
+
+
+
+count_month, unique_users
+1		3
+2		5
+3
+5		1				
+.
+.
+12
+
+
+user_id rtc_epoch_time month	dnsrnk
+Himanshu	122424	feb	1
+Himanshu	532424	mar	2
+Himanshu	532424	mar	2
+Himanshu	532424	may	3
+abc		244	apr	1
+
+
+user_id 		dnsrnk 	
+Himanshu		3	
+abc			1	
+dksd			4	
+
+count	unique_user_session
+1	3
+1	1
+1	4
+
+
+
+As CTE
+(
+select user_id, max(dnsrnk) unique_users, rownum over (partition by user_id) as count_month
+(
+select
+user_id, rtc_epoch_time, month(rtc_epoch_time) as month_time denserank over (partition by user_id, month) as dnsrnk
+group by month_time
+)
+group by user_id
+)
+select count_month, unique_users
+from CTE
+
+
+
+
+As CTE
+(
+select user_id, max(dnsrnk) as unique_user_session
+(
+select
+user_id, rtc_epoch_time, month(rtc_epoch_time) as month_time denserank over (partition by user_id, month) as dnsrnk
+group by month_time
+)
+group by user_id
+)
+select count(user_id), unique_user_session from CTE
+group by unique_user_session
+order by unique_user_session asc
+
+
+
+df.select(distinct(col("user_id")),to_unixtimestamp(rtc_epoch_time).agg("user_id").count()
+
+
+60 GB - ram
+500 GB - data
+
+select 
+start
+
+
+
+
+[3:07 PM] Aditi Rajput
+Write a SQL query to find the names of employees and the names of their managers. If an employee does not have a manager, the manager's name should be shown as 'No Manager'.
+[3:07 PM] Aditi Rajput
+ 
+emp_id	emp_name	manager_id
+1	Alice	null	1
+2	Bob	1	2
+3	Charlie	1	2
+4	David	2	4
+5	Eve	2
+ 
+
+
+select e1.emp_name, 
+case when e2.emp_name is null
+then "No Manager"
+else
+e2.emp_name as Manager_name
+
+from employee_tbl as e1
+join employee_tbl as e2
+on e1.emp_id=e2.manager_id
+
+
+table 1:
+1
+2
+3
+ 
+table 2:
+1
+3
+4
+5
+
+
+left
+1	1
+2	Null
+3	3
+
+
+
+
+right
+1	1
+3	3
+4	Null
+5	Null
+
+
+
+full outer join
+1	1
+2	Null
+3	3
+Null	4
+Null	5
+
+
+Cross join
+12 records
+
+
+val list = List(1, 2, 3)
+
+
+map(lambda x: X+2)
+3 recods,
+
+
+flatmap(lambda x,y,z : x+y+z)
+1 record
+
+
+Write program in spark
+emp_id                employer                startyear                endyear
+1001                Microsoft                  2015                         2020                       
+1001                Google                         2020                         2022       
+1002                Google                         2015                         2020       
+1002                Amazon                  2020                         2022       
+1002                Microsoft                  2022                         2023
+1003                Amazon                  2020                         2023
+Retreive the employees along with the employer details whose first employer is Microsoft and next employer is Google
+
+emp_id                employer                startyear                endyear 		row_id
+1001                Microsoft                  2015                         2020              1         
+1001                Google                         2020                         2022       2
+1002                Google                         2015                         2020       1
+1002                Amazon                  2020                         2022       2
+1002                Microsoft                  2022                         2023
+1003                Amazon                  2020                         2023
+
+df1.window("").agg("emp_id").orderby(startyear).alias("Row_id")
+
+df_final=df2.select(col("emp_id").filter((row_id == '1' && col("employer") == "Microsoft") && (row_id == '2' && col("employer") == "Google") )
+
+df_final.show()
+
+
+select emp_id
+where (emplpyer=mi and row_id=1)
+
+SQL query question
+
+Table:
+
+Vendor    Qty
+Amazon    10
+Flipkart  10
+Myntra    10
+Flipkart  5
+Myntra    10
+
+Output:
+Amazon    Flipkart    Myntra
+10              15        20
+
+
+
+select Vendor,
+case when vendor = "amazon"
+	then sum(qty) as Amazon
+case when vendor = "Flipkart"
+	then sum(qty) as Flipkart
+case when vendor = "Myntra"
+	then sum(qty) as Myntra
+from table1
+group by vendor;
+
+
+
+# Online Python compiler (interpreter) to run Python online.
+# Write Python 3 code in this online editor and run it.
+print("Try programiz.pro")
+
+Python question
+I have below array
+arr = {1, 7, -23, -58, 7, 0}
+
+find pair with max product.
+
+max_product=0
+for i in range (0, len(arr)):
+    for j in range ( i+1, len(arr)):
+        if (arr[i] * arr[j]) > max_product:
+            max_product= arr[i] * arr[j]
+        else:
+           break
+print("Highest product"+ max_product)
+
+
+
+
+STUDENT 
+ROLLNUM          SUB      MARKS 
+1                MATHS    10
+1                SC       20
+2                MATHS    15
+ 
+ 
+Write a SQL query to get below result
+ 
+ROLLNUM            MATHS     SC
+1                   10       20
+2                   15       NULL
+
+
+
+select * from
+rowsetnum("file_path", format '', header=true)
+
+
+less 1 MB
+older than 180 day
+
+find filpath/filename +mtime 180  
+
+[3:40 PM] Puneet Kukreja
+
+File 
+ 
+dsjkakjdjksdjkaskdjjksda
+sdjkajksdjasjksadkj
+sdaahdsajhkjkdas
+
+df=spark.read.file("filepath/filename", header=false)
+df_explode=df.explode('').alias("characters")
+df_counts=df_explode.groupby("characters").count()
+show(df_counts)
+
+
+total Core : 150
+Mem: 64
+number of core per exec : 5
+150/5=30
+
+number of executor: 
+
+map
+name_ 
+
+
+flatmap
+count: 5
+
+SQL question - There is table with below details 
+Table name : Tab_1
+
+Columns:
+name id roleno address
+
+There are duplicate ids, select all the records minus duplicate records order them on the basis of addrress.
+
+10k rec
+
+5k dup based id
+
+select id
+from tab_1
+group by id
+having count > 1
+
+order by address
+
+select *, denserank over (partition by id order by address) as rnk
+from tab_1
+where rnk=1;

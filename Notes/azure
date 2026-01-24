@@ -1,0 +1,9 @@
+make separate .md files for interview questions in Azure Apps, Azure Kubernetes Service (AKS), Azure Storage,
+Azure Functions, Log Analytics, and Azure Data Factory (ADF).
+
+azure_apps.md
+azure_aks.md
+azure_storage.md
+azure_functions.md
+azure_log_analytics.md
+azure_data_factory.md

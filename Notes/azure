@@ -7,3 +7,17 @@ azure_storage.md
 azure_functions.md
 azure_log_analytics.md
 azure_data_factory.md
+
+
+in these tech stack, can u mention which is suitable for which usecase.
+what is prefered in various sectors like banking, telecom, healthcare, social media, IOT, video streaming, etc.
+for example,
+
+Banking streaming (security preference)
+source --- kafka -----> Oracle Database ---> tableau dashboard 
+
+Telecom batch processing (large data)
+source --- spark -----> SAP IQ databse---> Power BI dashboard
+
+Streaming (low latency)
+source --- flink -----> Snowflake ---> tableau dashboard

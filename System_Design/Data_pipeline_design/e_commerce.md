@@ -10,6 +10,10 @@ Real-time inventory management and recommendation personalization based on user 
 
 ## 3. Architecture: CDC & Delta Lake
 
+### Architecture Flow
+`PostgreSQL (Orders)` --> `Debezium (CDC)` --> `Kafka` --> `Spark Streaming / Flink` --> `Delta Lake (S3)` --> `Redis (Real-time View)`
+
+
 ### Components
 1.  **Source Database**: PostgreSQL (Orders, Inventory).
 2.  **CDC Tool**: **Debezium**.

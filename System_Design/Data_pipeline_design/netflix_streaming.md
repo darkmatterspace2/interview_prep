@@ -10,6 +10,10 @@ Netflix ("Keystone" Platform) handles routing of data events from every device (
 
 ## 3. Architecture: The Keystone Pipeline
 
+### Architecture Flow
+`User Events` --> `Keystone (Kafka)` --> `Flink (Router & Masking)` --> `S3 (Iceberg Table)` --> `Trino (Interactive Query)`
+
+
 ### Components
 1.  **Fronting**: REST Proxy / DG (Data Gateway) accepts events.
 2.  **Messaging**: **Kafka** (Partitioned by UserID or DeviceID).

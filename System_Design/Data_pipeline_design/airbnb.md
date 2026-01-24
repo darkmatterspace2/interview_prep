@@ -11,6 +11,10 @@ Airbnb needs to process daily bookings, listings, and user interactions to gener
 
 ## 3. Architecture: The "Airflow" Pattern
 
+### Architecture Flow
+`MySQL / Event Logs` --> `Sqoop` --> `S3 (Landing/Bronze)` --> `Spark (Transformation)` --> `Airflow (Orchestrator)` --> `S3 (Gold)` --> `Druid (Dashboard)`
+
+
 ### Components
 1.  **Sources**:
     *   **MySQL (RDS)**: Production DB (Listings, Bookings).

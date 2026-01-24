@@ -10,6 +10,10 @@ Facebook generates Petabytes of logs per hour (Likes, Comments, Scroll depth, Er
 
 ## 3. Architecture: The Log Aggregation Pipeline
 
+### Architecture Flow
+`App Logs` --> `Scribe (Collector)` --> `Kafka (Buffer)` --> `Druid (Real-time OLAP)` & `HDFS (Batch/Hive)` --> `Superset (Analytics)`
+
+
 ### Components
 1.  **Ingestion**: **Scribe** (Facebook's internal log collector, similar to Fluentd).
     *   Agents on every web server push logs to Scribe aggregators.

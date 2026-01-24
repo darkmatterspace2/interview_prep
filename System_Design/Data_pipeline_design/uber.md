@@ -9,6 +9,10 @@ Uber manages "Trip" audits, billing updates, and rider history. A trip has a lif
 
 ## 3. Architecture: Apache Hudi & Kappa
 
+### Architecture Flow
+`Trip Events` --> `Kafka` --> `Hudi (Kappa Upserts)` --> `HDFS/S3` --> `Hive / Presto (Serving)`
+
+
 ### Components
 1.  **Ingestion**: Kafka.
 2.  **Lake Format**: **Apache Hudi** (Hadoop Upsert Delete and Incremental).

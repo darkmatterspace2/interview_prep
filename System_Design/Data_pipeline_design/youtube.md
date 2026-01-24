@@ -10,6 +10,10 @@ Correctly counting "Views" is critical (Monetization). We need a system that is 
 
 ## 3. Architecture: Lambda Architecture
 
+### Architecture Flow
+`Video Upload` --> `Blob Store` --> `Kafka (Event)` --> `Spark Streaming (Speed)` & `MapReduce (Batch)` --> `Serving Layer (Views DB)`
+
+
 ### Components
 1.  **Speed Layer (Approximate)**:
     *   Kafka -> Spark Streaming / Storm.

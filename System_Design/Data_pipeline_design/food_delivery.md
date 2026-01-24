@@ -10,6 +10,10 @@ Calculate dynamic "Estimated Time of Arrival" (ETA) and "Delivery Fees" based on
 
 ## 3. Architecture: Stream Processing (Flink)
 
+### Architecture Flow
+`Driver GPS` --> `Kafka (Ingestion)` --> `Flink (Stateful Processing)` --> `Redis (ETA Cache)` --> `Iceberg (Data Lake)`
+
+
 ### Components
 1.  **Source**: Driver GPS stream ~ every 5 seconds per driver (MQTT/WebSocket -> Kafka).
 2.  **Processing Engine**: **Apache Flink**.

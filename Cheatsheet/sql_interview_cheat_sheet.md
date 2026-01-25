@@ -82,6 +82,28 @@ SELECT month, revenue,
 FROM sales;
 ```
 
+### Framing (Rolling Windows)
+Defining the scope of rows for calculation (e.g., Running Totals, Moving Averages).
+**Syntax**: `ROWS BETWEEN [START] AND [END]`
+*   `UNBOUNDED PRECEDING`: Start of partition.
+*   `CURRENT ROW`: Current row.
+*   `N PRECEDING`: N rows before.
+
+```sql
+-- 3-day Moving Average (Rows)
+AVG(sales) OVER (
+    ORDER BY date
+    ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+)
+
+-- Rolling 7-day Sum (Time-based)
+-- Useful when dates are missing in the sequence
+SUM(amount) OVER (
+    ORDER BY visited_on 
+    RANGE BETWEEN INTERVAL '6' DAY PRECEDING AND CURRENT ROW
+)
+```
+
 ---
 
 ## 5. Common Table Expressions (CTEs)
@@ -102,20 +124,20 @@ JOIN Engineering e ON h.dept_id = e.id;
 ---
 
 ## 6. String Functions
-*   `CONCAT(a, b)`: 'ab'
-*   `SUBSTRING(str, start, len)` or `SUBSTR`: Extract part.
+*   `CONCAT(a, b)`: 'ab'. `CONCAT_WS('-', 'A', 'B')` -> 'A-B'.
+*   `SUBSTRING(str, start, len)`: Extract part.
 *   `TRIM(str)`: Remove whitespace.
 *   `UPPER(str) / LOWER(str)`
-*   `REPLACE(str, from, to)`
-*   `COALESCE(val1, val2)`: Return first non-null (often used for defaults).
+*   `REPLACE(str, from, to)`: `REPLACE('1-800', '-', '')` -> '1800'
+*   `COALESCE(val1, val2)`: Return first non-null.
 
 ---
 
 ## 7. Date Functions
 *   `CURRENT_DATE` / `NOW()` / `GETDATE()`
-*   `EXTRACT(part FROM date)` or `DATEPART`: Get Year/Month/Day.
-*   `DATEDIFF(interval, start, end)`: Difference between dates.
-*   `DATE_ADD(date, interval)`: Add days/months.
+*   `EXTRACT(part FROM date)` or `DATEPART`: Get Year/Month/Day. `DATEPART(year, '2023-10-25')` -> 2023.
+*   `DATEDIFF(interval, start, end)`: `DATEDIFF(day, '2023-01-01', '2023-01-10')` -> 9.
+*   `DATE_ADD(date, interval)`: `DATEADD(day, 7, '2023-01-01')` -> '2023-01-08'.
 
 ```sql
 -- Find users who signed up in the last 7 days
@@ -125,7 +147,57 @@ WHERE created_at >= DATE_ADD(CURRENT_DATE, INTERVAL -7 DAY);
 
 ---
 
-## 8. Set Operations
+## 8. Regex (Regular Expressions)
+Support varies significantly by SQL dialect.
+
+### Common Patterns
+*   `^`: Start of string. `^A` -> Starts with A.
+*   `$`: End of string. `com$` -> Ends with com.
+*   `.`: Any single character.
+*   `*`: Zero or more. `a*` -> '', 'a', 'aa'.
+*   `+`: One or more. `a+` -> 'a', 'aa'.
+*   `?`: Zero or one.
+*   `[abc]`: Any character in set.
+*   `[^abc]`: Any character NOT in set.
+*   `\d`: Digit (0-9).
+*   `\s`: Whitespace.
+
+### Examples (PostgreSQL / Spark)
+```sql
+-- Emails from specific domain (insensitive) using Anchors
+WHERE email ~* '@gmail\.com$'
+
+-- Phone numbers starting with 555
+WHERE phone ~ '^555-\d{4}'
+
+-- Strings containing at least one digit
+WHERE password ~ '\d+'
+
+-- Extract Domain from Email (Spark)
+regexp_extract(email, '@(.*)', 1)
+```
+
+### PostgreSQL
+*   `~`: Case-sensitive match.
+*   `~*`: Case-insensitive match.
+*   `!~`: No match.
+
+```sql
+SELECT * FROM users WHERE email ~* '\.(net|org)$';
+```
+
+### Spark SQL / Databricks
+*   `regexp_extract(str, regex, idx)`
+*   `regexp_replace(str, regex, replacement)`
+
+```sql
+-- Mask digits: '123-456' -> 'XXX-XXX'
+SELECT regexp_replace('123-456', '\d', 'X'); 
+```
+
+---
+
+## 9. Set Operations
 Combine results from two queries.
 *   `UNION`: Combined distinctive rows (Removes duplicates). Use `UNION ALL` to keep duplicates (Faster).
 *   `INTERSECT`: Rows present in *both* sets.
@@ -133,7 +205,7 @@ Combine results from two queries.
 
 ---
 
-## 9. Performance Tuning (Indexing)
+## 10. Performance Tuning (Indexing)
 *   **Index**: Data structure (B-Tree) to speed up `SELECT` based on specific columns. Slows down `INSERT/UPDATE`.
 *   **Clustered Index**: Sorts the physical data rows (Only 1 per table, usually PK).
 *   **Non-Clustered Index**: Separate structure pointing to data rows.
@@ -145,7 +217,7 @@ CREATE INDEX idx_users_email ON users(email);
 
 ---
 
-## 10. Pivot / Unpivot (CASE WHEN)
+## 11. Pivot / Unpivot (CASE WHEN)
 Turning rows into columns manually.
 
 ```sql

@@ -58,6 +58,11 @@ d.get('c', 0)           # Returns 0 if key missing
 from collections import defaultdict
 graph = defaultdict(list)   # Default value is []
 graph[1].append(2)          # No KeyError
+
+# Conversions
+keys_list = list(d.keys())
+values_list = list(d.values())
+items_list = list(d.items()) # List of tuples [(k,v), ...]
 ```
 
 ## 4. Hash Set
@@ -68,6 +73,9 @@ s.add(1)
 s.remove(1)             # Raises KeyError if missing
 s.discard(1)            # No error
 1 in s                  # Check existence
+
+# Conversion
+s_list = list(s)        # Convert to list
 ```
 
 ## 5. Queue & Stack (Deque)
@@ -131,9 +139,78 @@ math.floor(2.3)         # 2
 pow(2, 3, 5)            # (2^3) % 5 = 3
 ```
 
-## 9. Common Patterns
+## 9. Classes & OOP
+```python
+class Dog:
+    # Constructor
+    def __init__(self, name):
+        self.name = name
+    
+    # Method
+    def bark(self):
+        print(f"{self.name} says Woof!")
+
+d = Dog("Buddy")
+d.bark()
+```
+
+## 10. Lambda Functions
+Anonymous small functions.
+```python
+add = lambda x, y: x + y
+print(add(2, 3))  # 5
+
+# With map/filter
+nums = [1, 2, 3, 4]
+squared = list(map(lambda x: x**2, nums))      # [1, 4, 9, 16]
+evens = list(filter(lambda x: x % 2 == 0, nums)) # [2, 4]
+```
+
+## 11. Decorators
+Wrappers to modify function behavior.
+```python
+def my_decorator(func):
+    def wrapper():
+        print("Before function call")
+        func()
+        print("After function call")
+    return wrapper
+
+@my_decorator
+def say_hello():
+    print("Hello!")
+
+say_hello()
+```
+
+## 12. Linked List
+Standard class definition for LeetCode.
+```python
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+# Traversal
+curr = head
+while curr:
+    print(curr.val)
+    curr = curr.next
+
+# Reverse List (Iterative)
+prev, curr = None, head
+while curr:
+    temp = curr.next
+    curr.next = prev
+    prev = curr
+    curr = temp
+return prev
+```
+
+## 13. Common Patterns
 
 ### Sliding Window
+**1. Variable Size (Shrinkable)**: Find valid window (e.g., Min Subarray Sum)
 ```python
 l = 0
 for r in range(len(nums)):
@@ -141,6 +218,16 @@ for r in range(len(nums)):
     while invalid(window):
         # remove nums[l]
         l += 1
+```
+
+**2. Fixed Size (k)**: Max Sum of size k
+```python
+window_sum = sum(nums[:k])
+max_sum = window_sum
+
+for i in range(k, len(nums)):
+    window_sum += nums[i] - nums[i - k]
+    max_sum = max(max_sum, window_sum)
 ```
 
 ### Two Pointers

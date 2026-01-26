@@ -172,6 +172,36 @@ JOIN Engineering e ON h.dept_id = e.id;
 *   `REPLACE(str, from, to)`: `REPLACE('1-800', '-', '')` -> '1800'
 *   `COALESCE(val1, val2)`: Return first non-null.
 
+### String Aggregation (List Aggregation)
+Concatenating values from multiple rows into a single string.
+
+*   **MySQL**: `GROUP_CONCAT(col ORDER BY col SEPARATOR ', ')`
+*   **PostgreSQL**: `STRING_AGG(col, ', ' ORDER BY col)`
+*   **SQL Server**: `STRING_AGG(col, ', ') WITHIN GROUP (ORDER BY col)`
+
+```sql
+-- List all products ordered by each user
+SELECT user_id, 
+       GROUP_CONCAT(product_name ORDER BY product_name SEPARATOR ', ') as products
+FROM orders
+GROUP BY user_id;
+```
+
+**Input Table (`orders`)**
+| user_id | product_name |
+| :--- | :--- |
+| 1 | Apple |
+| 1 | Banana |
+| 2 | Cherry |
+| 1 | Apple |
+
+**Output**
+| user_id | products |
+| :--- | :--- |
+| 1 | Apple, Apple, Banana |
+| 2 | Cherry |
+```
+
 ---
 
 ## 7. Date Functions

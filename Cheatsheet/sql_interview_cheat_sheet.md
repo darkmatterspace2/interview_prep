@@ -185,7 +185,7 @@ JOIN Engineering e ON h.dept_id = e.id;
 SELECT * FROM users
 WHERE created_at >= DATE_ADD(CURRENT_DATE, INTERVAL -7 DAY);
 ```
-
+https://dev.mysql.com/doc/refman/8.4/en/date-and-time-functions.html
 ---
 
 ## 8. Regex (Regular Expressions)

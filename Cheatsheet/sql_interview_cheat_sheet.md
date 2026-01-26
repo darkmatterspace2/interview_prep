@@ -84,23 +84,64 @@ FROM sales;
 
 ### Framing (Rolling Windows)
 Defining the scope of rows for calculation (e.g., Running Totals, Moving Averages).
-**Syntax**: `ROWS BETWEEN [START] AND [END]`
+
+**Syntax**: `[ROWS | RANGE] BETWEEN [START] AND [END]`
+
+**Frame Units**:
+*   `ROWS`: Physical rows (e.g., "last 3 rows").
+*   `RANGE`: Logical value difference (e.g., "last 3 days" or "values within 5 units").
+
+**Frame Bounds**:
 *   `UNBOUNDED PRECEDING`: Start of partition.
+*   `N PRECEDING`: N rows/units before.
 *   `CURRENT ROW`: Current row.
-*   `N PRECEDING`: N rows before.
+*   `N FOLLOWING`: N rows/units after.
+*   `UNBOUNDED FOLLOWING`: End of partition.
 
 ```sql
--- 3-day Moving Average (Rows)
+-- 1. Cumulative Sum (Running Total)
+-- From start to current row
+SUM(sales) OVER (
+    ORDER BY date
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+)
+
+-- 2. 3-day Moving Average (Trailing)
+-- 2 rows before + current row
 AVG(sales) OVER (
     ORDER BY date
     ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
 )
 
--- Rolling 7-day Sum (Time-based)
--- Useful when dates are missing in the sequence
+-- 3. Centered Moving Average (PRECEDING + FOLLOWING)
+-- 1 row before + current row + 1 row after
+AVG(sales) OVER (
+    ORDER BY date
+    ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING
+)
+
+-- 4. Looking Ahead (Future values only)
+-- Next 3 rows, excluding current
+SUM(sales) OVER (
+    ORDER BY date
+    ROWS BETWEEN 1 FOLLOWING AND 3 FOLLOWING
+)
+
+-- 5. Rolling 7-day Sum (Time-based / RANGE)
+-- Handles missing dates correctly by looking at the value of 'visited_on'
+-- Requires 'visited_on' to be a DATE/TIMESTAMP type
 SUM(amount) OVER (
     ORDER BY visited_on 
     RANGE BETWEEN INTERVAL '6' DAY PRECEDING AND CURRENT ROW
+)
+
+-- 6. Last 3 Days (Including today) vs Last 3 Rows
+-- If you have multiple records per day or missing days:
+-- ROWS: Strictly 3 physical records.
+-- RANGE: All records falling within the 3-day window.
+COUNT(*) OVER (
+    ORDER BY date
+    RANGE BETWEEN INTERVAL '2' DAY PRECEDING AND CURRENT ROW
 )
 ```
 

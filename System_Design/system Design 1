@@ -1,0 +1,36 @@
+
+This video provides an overview of seven common system design patterns in data engineering, contrasting them with general software engineering system designs. The presenter, Jash Radia, a senior software engineer at DoorDash (1:20), explains how these patterns are used by tech giants like Netflix, Uber, Amazon, and Coca-Cola (0:47-0:51).
+
+The seven patterns are categorized into two groups:
+
+1. Data Processing Architectures (1:04-1:10)
+These patterns address how data flows through a system and how events are processed in real-time or in batches.
+
+Lambda Architecture (1:39-2:37): This architecture splits data processing into two distinct layers: a batch layer for historical data and a real-time layer for current data.
+Pros: Provides a good view of historic data and handles real-time data; fault-tolerant (1:47-1:57).
+Cons: Increased pipeline complexity due to maintaining two separate components; potential data duplication (1:58-2:12).
+Example: Netflix uses Lambda architecture for aggregated insights and real-time recommendations (2:14-2:21).
+Kappa Architecture (2:37-3:57): This architecture uses a single real-time layer, with batch processing achieved by replaying events through message processing systems like Kafka (2:40-2:53).
+Pros: Lower complexity and easier maintenance compared to Lambda; better real-time processing support (2:57-3:00).
+Cons: Batch processing support is not as optimal and is compute-intensive (3:02-3:05, 3:51-3:55).
+Example: Uber's core infrastructure is built on Kafka, functioning as a central nervous system for data management and enabling quick reactions to changing conditions (3:07-3:27).
+Event-Driven Microservices Architecture (5:12-6:24): This involves breaking down applications into independent, loosely coupled services that communicate through events.
+Example: Amazon uses microservices for order processing, with events like "order placed" triggering child events in other services (5:14-5:40).
+Challenge: Ensuring "exactly once" processing of messages to avoid duplicate processing (5:59-6:17).
+Serverless Pipelines (6:25-7:54): These pipelines use serverless services like AWS Lambda, Google Cloud Functions, or Azure Functions, allowing users to pay only for what they use and focus on application logic rather than infrastructure (6:26-7:05).
+Pros: Cost-effective (pay-per-use); reduced infrastructure management (6:37-7:05).
+Cons: Maximum execution time limits for functions (e.g., AWS Lambda has a 15-minute limit); not always the most cost-effective solution for all scenarios (7:32-7:49).
+Example: Coca-Cola uses serverless architecture for vending machine logic, where transactions trigger Lambda functions (7:06-7:20).
+
+2. Data Management and Domain-Oriented Architectures (1:12-1:19)
+These patterns focus on how data is modeled, stored, and governed.
+
+Command Query Responsibility Segregation (CQRS) and Event Sourcing (7:54-8:44): This pattern separates command (write-heavy) operations from query (read-heavy) operations, often used in banking applications where financial transactions are logged as events (7:56-8:16). Event sourcing maintains a complete auditable log of all state changes (8:33-8:43).
+Data Mesh Architecture (8:45-9:58): In complex organizations, this architecture decentralizes data ownership to different domain teams (e.g., finance, sales), allowing them to manage their data with separate cloud accounts and share data without copying it (8:47-9:20).
+Example: Zalando uses data mesh architecture with different accounts for injection, serving, and metadata (9:44-9:57).
+Data Lakehouse Architecture (9:58-11:12): This combines the flexibility and cost-effectiveness of data lakes (storing data in any format) with the structured, query-optimized capabilities of data warehouses (10:01-10:25).
+Example: Combining Amazon Redshift (data warehouse) with S3 (data lake) and using Glue Catalog to create Athena tables on S3 data (10:26-10:39).
+Key Formats: Delta Lake and Iceberg are widely used file formats for this architecture (10:45-10:49).
+Platform: Databricks is considered the most mature platform for lakehouse architecture (11:07-11:12).
+
+The video concludes by emphasizing that in real-world scenarios, a combination of two to three patterns is often used to solve specific data engineering problems (11:13-11:29).

@@ -1449,3 +1449,1125 @@ DESIGN DECISIONS:
 4. **Cost analysis** - Batch aggregations
 5. **Partner integration** - APIs, file drops
 ```
+
+---
+
+# Question Bank 4: Advanced Data & Software Engineering
+
+> **Principal-Level Breadth with Senior-Level Depth**
+
+---
+
+## 1️⃣ Full SDLC – Architecture & Design (Q1-5)
+
+### Q1: Monolith vs Modular Monolith vs Microservices for Data Platforms
+
+| Architecture | When to Use | Trade-offs |
+|--------------|-------------|------------|
+| **Monolith** | Small team (<5), early stage, single domain | Simple but hard to scale team |
+| **Modular Monolith** | Growing team, clear domain boundaries, shared infra | Best balance for most data teams |
+| **Microservices** | Large org, independent deployment needs, polyglot | Operational overhead, distributed debugging |
+
+**Decision Framework:**
+```
+Team Size < 5           → Monolith
+Team Size 5-20          → Modular Monolith  
+Team Size > 20 + Multi-domain → Microservices
+```
+
+**Data Platform Specific:** Modular monolith often wins because:
+- Shared metadata/catalog is critical
+- Cross-pipeline dependencies are common
+- Consistent tooling reduces cognitive load
+
+---
+
+### Q2: Architectural Principles for Data Systems vs Application Systems
+
+| Principle | Application Systems | Data Systems |
+|-----------|---------------------|--------------|
+| **Primary Goal** | Request latency | Throughput & correctness |
+| **State** | Stateless preferred | Inherently stateful |
+| **Failure Mode** | Retry/Circuit breaker | Idempotent replay |
+| **Coupling** | API contracts | Schema contracts |
+| **Testing** | Unit/Integration | Data validation + lineage |
+
+**Key Data System Principles:**
+1. **Immutability** - Write once, read many
+2. **Idempotency** - Re-run without side effects
+3. **Late Binding** - Schema on read flexibility
+4. **Observability** - Data lineage, not just logs
+
+---
+
+### Q3: Designing for Backward Compatibility in Data Pipelines
+
+**Strategies:**
+
+| Strategy | Implementation | Use Case |
+|----------|----------------|----------|
+| **Schema Evolution** | Avro/Protobuf with defaults | Adding columns |
+| **Versioned Endpoints** | `/v1/data`, `/v2/data` | Breaking changes |
+| **Migration Window** | Dual-write for N days | Major refactors |
+| **Feature Flags** | Toggle new logic | Gradual rollout |
+
+**Code Pattern:**
+```python
+# Backward compatible schema addition
+new_schema = {
+    "existing_field": "required",
+    "new_field": {"type": "string", "default": "N/A"}  # Default = safe
+}
+```
+
+---
+
+### Q4: Designing APIs for Data Consumption
+
+**Best Practices:**
+1. **Pagination** - Cursor-based for large datasets
+2. **Filtering** - Server-side, not client-side
+3. **Versioning** - URL or header-based
+4. **Rate Limiting** - Protect pipeline resources
+5. **Async for Heavy** - Return job_id, poll for results
+
+---
+
+### Q5: Preventing Tight Coupling Between Producers and Consumers
+
+| Technique | How It Works |
+|-----------|--------------|
+| **Schema Registry** | Central contract, versioned |
+| **Event Sourcing** | Consumers replay from log |
+| **Dead Letter Queue** | Isolate bad messages |
+| **Semantic Versioning** | Breaking = major bump |
+
+---
+
+## SDLC – Coding Standards (Q6-10)
+
+### Q6: Coding Standards for Data Pipelines
+
+| Standard | Why It Matters |
+|----------|----------------|
+| **Explicit column selection** | No `SELECT *` - schema changes break silently |
+| **Parameterized dates** | No hardcoded `'2024-01-01'` |
+| **Idempotent writes** | `MERGE`/`UPSERT`, not `INSERT` |
+| **Logging business keys** | Debug without PII exposure |
+| **Type hints** | Catch errors before runtime |
+
+---
+
+### Q7: Enforcing Standards Across Large Teams
+
+1. **Pre-commit hooks** - Block non-compliant code
+2. **CI linting** - SQLFluff, Black, Ruff
+3. **PR templates** - Checklist for reviewers
+4. **Architecture Decision Records (ADRs)** - Document "why"
+5. **Shared libraries** - Encapsulate patterns
+
+---
+
+### Q8: Performance vs Readability Balance
+
+**Rule:** Optimize for readability FIRST, then profile.
+
+```python
+# ❌ Premature optimization
+result = reduce(lambda a,b: a+b, map(lambda x: x**2, filter(lambda x: x>0, data)))
+
+# ✅ Readable first
+positives = [x for x in data if x > 0]
+squares = [x**2 for x in positives]
+result = sum(squares)
+```
+
+**When to sacrifice readability:**
+- Hot paths proven by profiling
+- Memory-constrained streaming
+- Cost-critical large-scale jobs
+
+---
+
+### Q9: What Makes Data Code Hard to Refactor
+
+1. **Implicit dependencies** - Consumers unknown
+2. **No tests** - Fear of breaking
+3. **Magic strings** - Column names everywhere
+4. **Tight coupling** - SQL in Python strings
+5. **No lineage** - Can't trace impact
+
+**Solution:** Invest in metadata/lineage before major refactors.
+
+---
+
+### Q10: Managing Technical Debt in Pipelines
+
+**Prioritization Framework:**
+```
+Debt Score = (Failure Frequency × Business Impact) / Refactor Effort
+```
+
+**Debt Types:**
+- **High Priority:** Causes incidents, blocks features
+- **Medium:** Slows development, manual workarounds
+- **Low:** Cosmetic, minor inefficiencies
+
+---
+
+## SDLC – Code Reviews (Q11-15)
+
+### Q11: Data Engineering Code Review Checklist
+
+| Check | What to Look For |
+|-------|------------------|
+| **Correctness** | JOIN logic, NULL handling, deduplication |
+| **Idempotency** | Re-runnable without side effects |
+| **Performance** | Partition pruning, broadcast hints |
+| **Schema** | Explicit types, evolution safe |
+| **Tests** | Edge cases covered |
+
+---
+
+### Q12: Reviewing SQL for Correctness and Performance
+
+**Correctness:**
+- JOINs: Cartesian risk? Fanout?
+- NULLs: Handled in WHERE, aggregations?
+- GROUP BY: Correct grain?
+
+**Performance:**
+- Partition filters present?
+- Functions on partition columns? (Bad!)
+- Subquery vs JOIN choice?
+
+---
+
+### Q13: Detecting Hidden Data Quality Bugs in PRs
+
+| Red Flag | Example |
+|----------|---------|
+| **Missing NULL handling** | `WHERE status != 'FAILED'` misses NULLs |
+| **Implicit type conversion** | JOIN on string vs int |
+| **Aggregation before filter** | Wrong grain |
+| **Timezone assumptions** | `DATE(timestamp)` without TZ |
+
+---
+
+### Q14: Reviewing Spark vs Python Services
+
+| Spark | Python Services |
+|-------|-----------------|
+| Partition strategy | API contracts |
+| Shuffle operations | Memory management |
+| Broadcast usage | Threading/async |
+| Caching strategy | Connection pooling |
+
+---
+
+### Q15: Common Red Flags in Data PRs
+
+1. `SELECT *` anywhere
+2. No WHERE clause on date columns
+3. `COUNT(*)` without considering NULLs
+4. Hardcoded dates/values
+5. No idempotency pattern
+
+---
+
+## SDLC – Source Control (Q16-20)
+
+### Q16: GitFlow vs Trunk-Based for Data Teams
+
+| Approach | Best For |
+|----------|----------|
+| **Trunk-Based** | Continuous deployment, feature flags |
+| **GitFlow** | Release cycles, multiple versions |
+| **Data Recommendation** | Trunk-based with feature flags for schemas |
+
+---
+
+### Q17: Versioning SQL and Schemas
+
+```
+schemas/
+├── v1/
+│   └── orders.sql
+├── v2/
+│   └── orders.sql  # Added new_column
+└── migrations/
+    └── v1_to_v2.sql
+```
+
+**Tools:** Flyway, Alembic, dbt migrations
+
+---
+
+### Q18-20: Branch Management
+
+- **Long-running branches:** Rebase frequently, time-box to 2 weeks
+- **Merge conflicts in SQL:** Use semantic merge tools, avoid reformatting
+- **Never commit:** Credentials, PII, large data files, `.env`
+
+---
+
+## SDLC – CI/CD (Q21-25)
+
+### Q21: Safe Data Pipeline Deployment
+
+1. **Shadow mode** - Run new logic, compare outputs
+2. **Canary** - Process subset first
+3. **Feature flags** - Toggle at runtime
+4. **Dual-write** - Both old and new for N days
+
+---
+
+### Q22: Blue-Green vs Canary for Data
+
+| Strategy | Data Systems Use |
+|----------|------------------|
+| **Blue-Green** | Table swaps, Redshift schemas |
+| **Canary** | Process 1% of partitions first |
+| **Recommended** | Canary + automated comparison |
+
+---
+
+### Q23: Rolling Back Data Changes
+
+**Sequence:**
+1. Stop pipeline immediately
+2. Restore from snapshot/backup
+3. Replay from last known good checkpoint
+4. Validate with smoke tests
+5. Notify downstream consumers
+
+---
+
+### Q24: Data CI Pipeline Validation
+
+| Check | Tool |
+|-------|------|
+| SQL lint | SQLFluff |
+| Schema validation | Great Expectations |
+| Unit tests | pytest + mocks |
+| Integration | dbt test |
+| Cost estimation | Query explain |
+
+---
+
+### Q25: Preventing Downstream Breaks
+
+1. **Schema registry** - Enforce compatibility
+2. **Contract tests** - Producer validates consumer expectations
+3. **Deprecation notices** - In metadata catalog
+4. **Staged rollout** - Time buffer for discovery
+
+---
+
+## SDLC – Testing (Q26-30)
+
+### Q26: Unit Testing for Data Pipelines
+
+| Testable | Not Easily Testable |
+|----------|---------------------|
+| Transformation logic | Full Spark cluster |
+| Business rules | External API calls |
+| Date handling | Live database |
+| NULL handling | Production data |
+
+---
+
+### Q27: Data Tests vs Software Tests
+
+| Software Tests | Data Tests |
+|----------------|------------|
+| Behavior | Correctness |
+| Mocked inputs | Sample data |
+| Deterministic | Statistical |
+| Fast | Can be slow |
+
+---
+
+### Q28: Testing Spark Jobs
+
+```python
+def test_transformation():
+    spark = SparkSession.builder.master("local[2]").getOrCreate()
+    input_df = spark.createDataFrame([...])
+    result = transform(input_df)
+    assert result.count() == expected_count
+```
+
+---
+
+### Q29: Contract Testing for Data
+
+**Producer guarantees:**
+- Schema structure
+- Value ranges
+- Freshness SLA
+
+**Consumer validates:**
+- Required fields present
+- Types match
+- Volume in expected range
+
+---
+
+### Q30: Why Most Data Tests Fail in Practice
+
+1. **Too slow** - Full pipeline for one test
+2. **Flaky** - Time-dependent, external deps
+3. **Wrong scope** - Testing infra, not logic
+4. **Maintenance burden** - Test data rots
+
+---
+
+## SDLC – Operational Excellence (Q31-35)
+
+### Q31: Operational Excellence for Data Systems
+
+**Definition:** Ability to run and monitor systems to deliver business value while continuously improving.
+
+**Pillars:**
+1. Observability
+2. Incident response
+3. Capacity planning
+4. Continuous improvement
+
+---
+
+### Q32: Pipeline Health Metrics
+
+| Metric | Target |
+|--------|--------|
+| Success rate | >99.9% |
+| Latency (P95) | <SLA |
+| Data freshness | <threshold |
+| Cost per TB | Decreasing |
+| Incident count | Decreasing |
+
+---
+
+### Q33: Reducing On-Call Burden
+
+1. **Eliminate noise** - Tune alerts
+2. **Self-healing** - Auto-retry, failover
+3. **Runbooks** - Automate common fixes
+4. **Blameless culture** - Learn, don't punish
+
+---
+
+### Q34: Runbook Contents
+
+1. Alert description
+2. Impact assessment
+3. Diagnostic steps
+4. Resolution steps
+5. Escalation path
+6. Post-resolution validation
+
+---
+
+### Q35: Data Incident Post-Mortems
+
+**Template:**
+```
+## Incident: [Title]
+**Impact:** [Users/Systems affected]
+**Duration:** [Start - End]
+**Root Cause:** [Technical cause]
+**Detection:** [How discovered]
+**Resolution:** [Fix applied]
+**Lessons:** [What we learned]
+**Action Items:** [Prevent recurrence]
+```
+
+---
+
+## 2️⃣ Best Practices in Data Engineering (Q36-40)
+
+### Q36: What Makes a Data Platform Scalable
+
+| Dimension | Scalability Approach |
+|-----------|---------------------|
+| **Data volume** | Partitioning, columnar formats |
+| **Query concurrency** | Query queuing, caching |
+| **Team scale** | Self-service, governance |
+| **Cost** | Spot instances, tiered storage |
+
+---
+
+### Q37: Designing for Reprocessing and Backfills
+
+1. **Partition by date** - Replace, don't append
+2. **Immutable raw layer** - Never modify source
+3. **Parameterized pipelines** - Accept date ranges
+4. **Idempotent writes** - MERGE/UPSERT patterns
+
+---
+
+### Q38: Idempotency – Why It Matters and How to Implement
+
+**Why:** Pipelines fail mid-run; re-runs must be safe.
+
+| Pattern | Implementation |
+|---------|----------------|
+| **DELETE + INSERT** | Clear partition, then write |
+| **MERGE/UPSERT** | Match on keys, update |
+| **Overwrite mode** | Spark `.mode("overwrite")` |
+| **Checkpointing** | Track last processed ID |
+
+---
+
+### Q39: Avoiding "Data Swamps"
+
+| Problem | Solution |
+|---------|----------|
+| No metadata | Enforce cataloging |
+| No ownership | Assign data stewards |
+| No quality | Automated profiling |
+| No discovery | Searchable catalog |
+
+---
+
+### Q40: Fail Fast vs Be Tolerant
+
+| Approach | When to Use |
+|----------|-------------|
+| **Fail Fast** | Schema violations, critical data |
+| **Be Tolerant** | Late data, optional fields |
+| **Hybrid** | Quarantine bad records, continue |
+
+---
+
+## 3️⃣ Non-Relational Databases (Q41-56)
+
+### Object Storage (Q41-44)
+
+**Q41: Why Object Storage is Backbone**
+- Infinite scale at low cost
+- Decoupled storage and compute
+- Native cloud integration
+
+**Q42: Performance Pitfalls**
+- Small files (< 128MB) = slow
+- No listing optimization
+- High latency per request
+
+**Q43: Designing for Efficient Reads**
+- Partition by query patterns
+- Use columnar formats (Parquet)
+- Compact small files regularly
+
+**Q44: Consistency Guarantees**
+- S3: Strong read-after-write (2020+)
+- Still no atomic rename
+- Use Delta/Iceberg for transactions
+
+---
+
+### Key-Value & Document Stores (Q45-48)
+
+**Q45: When to Choose**
+
+| Store | Use Case |
+|-------|----------|
+| **DynamoDB** | Low-latency key lookups, serverless |
+| **Redis** | Caching, sessions, counters |
+| **CosmosDB** | Multi-model, global distribution |
+| **MongoDB** | Flexible schemas, aggregations |
+
+**Q46: Access Patterns Drive Design**
+- Single-table design for DynamoDB
+- Denormalize for read patterns
+- Composite keys for range queries
+
+**Q47: Hot Partition Problem**
+- Detection: Monitor partition metrics
+- Mitigation: Add random suffix to keys
+
+**Q48: Schema Evolution**
+- Optional fields with defaults
+- Versioned documents
+- Gradual migrations
+
+---
+
+### Column-Family DBs (Q49-52)
+
+**Q49: When Cassandra Fits**
+- High write throughput
+- Geo-distributed
+- Known query patterns
+
+**Q50: Write vs Read Optimized**
+
+| Optimize For | Trade-off |
+|--------------|-----------|
+| Writes | Fast ingestion, slow queries |
+| Reads | Denormalize, more storage |
+
+**Q51: TTLs**
+- Use: Time-series, temporary data
+- Avoid: Audit trails, compliance
+
+**Q52: Secondary Index Dangers**
+- Creates hidden tables
+- Can cause hot spots
+- Prefer materialized views
+
+---
+
+### Graph Databases (Q53-56)
+
+**Q53: When Graph DB is Justified**
+- Relationship traversal is core query
+- Variable-depth queries
+- Examples: Fraud detection, recommendations
+
+**Q54: Why Graph DBs Fail at Scale**
+- Super nodes (celebrities in social graphs)
+- Complex query optimization
+- Operational immaturity
+
+**Q55: Relationships vs JOINs**
+- Graphs: O(1) traversal
+- SQL: O(n) JOIN
+
+**Q56: Analytics on Graph Data**
+- Export to columnar for bulk analytics
+- Use GraphX/Spark for batch processing
+- OLAP graph databases emerging
+
+---
+
+## 4️⃣ Integration with Analytics & ML (Q57-65)
+
+### Q57: Pipelines for Analytics vs ML
+
+| Analytics | ML |
+|-----------|-----|
+| Aggregated data | Row-level features |
+| Historical trends | Point-in-time correctness |
+| Human consumers | Model consumers |
+| SQL-friendly | Feature vectors |
+
+---
+
+### Q58: Feature Engineering – Batch vs Online
+
+| Type | Latency | Use Case |
+|------|---------|----------|
+| **Batch** | Hours | Training, historical |
+| **Near real-time** | Minutes | Session features |
+| **Online** | Milliseconds | Real-time inference |
+
+---
+
+### Q59: Why Feature Stores Exist
+
+1. **Consistency** - Same features for training/serving
+2. **Reuse** - Share across teams
+3. **Point-in-time** - Prevent data leakage
+4. **Low latency** - Pre-computed serving
+
+---
+
+### Q60: Data Leakage – How Pipelines Cause It
+
+| Leakage Type | Cause |
+|--------------|-------|
+| **Target leakage** | Future data in features |
+| **Train-test** | Same records in both |
+| **Temporal** | Using event_time, not process_time |
+
+---
+
+### Q61: Training-Serving Skew Prevention
+
+1. **Single feature pipeline** - Same code path
+2. **Feature store** - Pre-computed features
+3. **Schema validation** - Same types/ranges
+4. **Monitoring** - Compare feature distributions
+
+---
+
+### Q62: Designing Pipelines for Multiple Use Cases
+
+```
+Raw Data
+    ↓
+[Bronze] - Ingestion (all use cases)
+    ↓
+[Silver] - Cleaned, joined
+    ↓
+┌───────────┬───────────┬───────────┐
+↓           ↓           ↓           ↓
+Ad-hoc   Dashboards  ML Training  Inference
+(Presto)  (BI Gold)  (Features)   (Online)
+```
+
+---
+
+### Q63: Dataset Versioning for ML
+
+| Approach | Tool |
+|----------|------|
+| Snapshot-based | Delta Lake time travel |
+| Hash-based | DVC |
+| Catalog-based | MLflow datasets |
+
+---
+
+### Q64: Offline vs Online Feature Trade-offs
+
+| Offline | Online |
+|---------|--------|
+| Batch compute | Real-time compute |
+| High throughput | Low latency |
+| Cost-efficient | Infrastructure heavy |
+| Stale (minutes-hours) | Fresh (seconds) |
+
+---
+
+### Q65: Validating Data Before Model Training
+
+| Check | Tool |
+|-------|------|
+| Schema | Great Expectations |
+| Statistics | Evidently, Whylogs |
+| Drift | Population stability index |
+| Freshness | Timestamp checks |
+
+---
+
+## 5️⃣ Data Modeling for Analytics, Reporting & ML (Q66-75)
+
+### Q66: Modeling for BI vs ML vs Operational Reporting
+
+| Use Case | Modeling Approach |
+|----------|-------------------|
+| **BI** | Star schema, aggregates, denormalized |
+| **ML** | Wide features, point-in-time, sparse |
+| **Operational** | Normalized, real-time, low latency |
+
+---
+
+### Q67: Why Star Schemas Still Matter
+
+1. **Query simplicity** - Understandable by analysts
+2. **Performance** - Columnar storage optimization
+3. **BI tool compatibility** - Tableau, Power BI
+4. **Clear semantics** - Facts vs dimensions
+
+---
+
+### Q68: When Denormalization is Right
+
+| Denormalize | Keep Normalized |
+|-------------|-----------------|
+| Read-heavy workloads | Write-heavy OLTP |
+| Known query patterns | Ad-hoc exploration |
+| Data warehouse | Source systems |
+| ML features | Audit/compliance |
+
+---
+
+### Q69: Wide Tables vs Narrow Tables
+
+| Wide | Narrow |
+|------|--------|
+| Single scan for all cols | Join multiple tables |
+| Sparse/NULL heavy | Dense, efficient |
+| Schema evolution pain | Flexible additions |
+| ML features | Transactional |
+
+---
+
+### Q70: Time-Aware Model Design
+
+1. **Snapshot tables** - State at each point in time
+2. **Slowly changing dims** - Type 2 for history
+3. **Validity columns** - `valid_from`, `valid_to`
+4. **Event sourcing** - Append-only, reconstruct
+
+---
+
+### Q71: SCDs in ML Context
+
+**Problem:** ML needs feature values AS OF training time.
+
+**Solution:**
+```sql
+-- Point-in-time join
+SELECT f.*, d.customer_tier
+FROM features f
+JOIN customer_dim d 
+  ON f.customer_id = d.customer_id
+ AND f.event_date BETWEEN d.valid_from AND d.valid_to
+```
+
+---
+
+### Q72: Feature Explosion – Control Strategies
+
+1. **Feature selection** - Remove low-variance
+2. **Dimensionality reduction** - PCA, embeddings
+3. **Domain grouping** - Aggregate similar
+4. **Governance** - Approve before adding
+
+---
+
+### Q73: Models That Survive Schema Changes
+
+1. **Loose coupling** - Select by name, not position
+2. **Default values** - Graceful new columns
+3. **Schema versioning** - Track compatibility
+4. **Feature aliases** - Abstract from physical
+
+---
+
+### Q74: Avoiding Metrics Inconsistency
+
+| Problem | Solution |
+|---------|----------|
+| Different definitions | Metric dictionary |
+| Calculation drift | Central metrics layer |
+| Stale docs | Code-as-documentation |
+| Siloed teams | Cross-team reviews |
+
+---
+
+### Q75: Semantic Layer – Why It Matters
+
+**Definition:** Abstraction between raw data and consumers.
+
+**Benefits:**
+- Consistent metrics across tools
+- Business-friendly names
+- Security/access control
+- Performance optimization
+
+**Tools:** dbt Metrics, Looker, Cube.dev
+
+---
+
+## 6️⃣ Data Quality, Reliability & Process (Q76-95)
+
+### Data Quality (Q76-80)
+
+**Q76: What is "Good" Data Quality**
+
+| Dimension | Measure |
+|-----------|---------|
+| **Accuracy** | Matches real world |
+| **Completeness** | No unexpected NULLs |
+| **Consistency** | Same across systems |
+| **Timeliness** | Fresh enough for use |
+| **Validity** | Conforms to constraints |
+
+---
+
+**Q77: Preventive vs Detective Checks**
+
+| Preventive | Detective |
+|------------|-----------|
+| Schema validation on ingest | Post-load profiling |
+| NOT NULL constraints | NULL count alerts |
+| API validation | Anomaly detection |
+| Contract testing | Reconciliation |
+
+---
+
+**Q78: Prioritizing Quality Checks**
+
+```
+Priority = (Business Impact × Frequency) / Detection Cost
+```
+
+Focus on:
+1. Revenue-impacting fields
+2. ML model inputs
+3. Regulatory data
+
+---
+
+**Q79: Freshness vs Accuracy Trade-offs**
+
+| Optimization | Trade-off |
+|--------------|-----------|
+| **Freshness first** | Accept some errors, fix later |
+| **Accuracy first** | Delay until validated |
+| **Balanced** | Tiered SLAs by use case |
+
+---
+
+**Q80: When Bad Data is Acceptable**
+
+1. Non-critical analytics
+2. Exploration datasets
+3. Sandbox environments
+4. When quarantined and labeled
+
+---
+
+### Reliability Engineering (Q81-85)
+
+**Q81: Data SLOs**
+
+| SLO Type | Example |
+|----------|---------|
+| **Freshness** | Data < 1 hour old |
+| **Completeness** | > 99.9% rows present |
+| **Accuracy** | Error rate < 0.1% |
+| **Availability** | 99.95% query success |
+
+---
+
+**Q82: Graceful Degradation Design**
+
+1. **Fallback to cache** - Serve stale if fresh fails
+2. **Partial processing** - Skip bad partitions
+3. **Default values** - Use historical averages
+4. **Alert and continue** - Don't block all data
+
+---
+
+**Q83: Replayability Patterns**
+
+1. **Immutable raw layer** - Never delete source
+2. **Idempotent transforms** - Safe to re-run
+3. **Partitioned outputs** - Replace, don't append
+4. **Checkpoints** - Resume from failure
+
+---
+
+**Q84: Checkpointing and Watermarking**
+
+| Concept | Use Case |
+|---------|----------|
+| **Checkpoint** | Resume batch from failure |
+| **Watermark** | Track event-time progress in streaming |
+| **High watermark** | Last processed record ID |
+
+---
+
+**Q85: Handling Partial Failures**
+
+1. **Quarantine** - Isolate bad records
+2. **Dead letter queue** - Retry pipeline
+3. **Compensating action** - Fix and replay
+4. **Alerting** - Notify before escalation
+
+---
+
+### Observability (Q86-90)
+
+**Q86: Monitoring vs Observability**
+
+| Monitoring | Observability |
+|------------|---------------|
+| Known unknowns | Unknown unknowns |
+| Dashboards | Exploration |
+| Metrics | Traces + logs + metrics |
+| Alert on threshold | Debug root cause |
+
+---
+
+**Q87: Golden Signals for Data Pipelines**
+
+| Signal | Metric |
+|--------|--------|
+| **Latency** | Time to complete |
+| **Traffic** | Records processed |
+| **Errors** | Failure rate |
+| **Saturation** | Resource utilization |
+| **Freshness** | Data age |
+
+---
+
+**Q88: Debugging Data Issues Faster**
+
+1. **Lineage** - Trace upstream source
+2. **Row-level logging** - Sample problematic records
+3. **Diff analysis** - Compare good vs bad runs
+4. **Time travel** - Check historical states
+
+---
+
+**Q89: Lineage – How Much is Enough**
+
+| Level | Complexity | Value |
+|-------|------------|-------|
+| **Table-level** | Low | Basic impact analysis |
+| **Column-level** | Medium | Accurate dependencies |
+| **Row-level** | High | Full audit trail |
+
+**Recommendation:** Column-level for most use cases.
+
+---
+
+**Q90: Impact Analysis When Things Break**
+
+1. Identify affected table
+2. Query lineage graph for downstream
+3. Notify downstream owners
+4. Estimate business impact
+5. Prioritize fix
+
+---
+
+### Continuous Improvement (Q91-95)
+
+**Q91: Identifying Pipeline Bottlenecks**
+
+| Tool | What It Shows |
+|------|---------------|
+| Spark UI | Stage times, shuffle |
+| Query plans | Expensive operations |
+| Profiling | Memory, CPU usage |
+| DAG visualization | Critical path |
+
+---
+
+**Q92: Sunsetting Unused Datasets**
+
+1. Track access logs
+2. No queries for N days → candidate
+3. Notify owners
+4. Archive, then delete
+5. Keep lineage for audit
+
+---
+
+**Q93: Measuring ROI of Data Work**
+
+| Metric | Measurement |
+|--------|-------------|
+| Cost reduction | Infra savings |
+| Time saved | Hours analyst work |
+| Revenue impact | Attribution to data |
+| Risk avoided | Incidents prevented |
+
+---
+
+**Q94: Driving Quality Culture**
+
+1. Make quality visible (dashboards)
+2. Celebrate good patterns
+3. Blameless post-mortems
+4. Quality in OKRs
+5. Automate enforcement
+
+---
+
+**Q95: Automation Opportunities**
+
+| Area | Automation |
+|------|------------|
+| Testing | dbt test, Great Expectations |
+| Deployment | CI/CD pipelines |
+| Monitoring | Auto-generated alerts |
+| Documentation | Schema-based docs |
+| Cost | Auto-scaling, archival |
+
+---
+
+## 7️⃣ Scenario-Based Maturity Questions (Q96-100)
+
+### Q96: Pipeline is Correct but Too Slow
+
+**Approach:**
+1. Profile to find bottleneck
+2. Check partition pruning
+3. Reduce shuffles (broadcast joins)
+4. Increase parallelism
+5. Consider caching or materialization
+6. Evaluate infra sizing
+
+---
+
+### Q97: Data is Fast but Sometimes Wrong
+
+**Approach:**
+1. Quantify error rate and impact
+2. Add data quality checks
+3. Implement circuit breakers
+4. Create reconciliation process
+5. Balance: Sometimes fast + monitored > slow + perfect
+
+---
+
+### Q98: ML Model Accuracy Dropped
+
+**Investigation Order:**
+1. **Data drift** - Feature distributions changed?
+2. **Upstream changes** - Schema/pipeline modified?
+3. **Data quality** - NULLs, outliers increased?
+4. **Temporal shift** - Seasonality, concept drift?
+5. **Training-serving skew** - Features differ at inference?
+
+---
+
+### Q99: Dashboards Don't Match Business Numbers
+
+**Root Cause Checklist:**
+1. Different time zones
+2. Different filter criteria
+3. Different deduplication logic
+4. Aggregation grain mismatch
+5. Late-arriving data handling
+6. Definition inconsistency
+
+**Solution:** Create semantic layer with shared definitions.
+
+---
+
+### Q100: Inherited Fragile Data Platform – First 90 Days
+
+**Week 1-2: Assess**
+- Document current state
+- Identify critical pipelines
+- Meet stakeholders
+
+**Week 3-4: Stabilize**
+- Fix highest-impact issues
+- Add basic monitoring
+- Create runbooks
+
+**Month 2: Foundation**
+- Improve testing coverage
+- Establish CI/CD
+- Start deprecating legacy
+
+**Month 3: Scale**
+- Self-service improvements
+- Documentation
+- Knowledge sharing
+
+---
+
+## 🧠 How Interviewers Evaluate These
+
+**They listen for:**
+- Decision frameworks with trade-offs
+- Real failure stories and lessons
+- Preventive thinking
+- Business alignment
+
+**They reject:**
+- Tool-only answers ("just use Spark")
+- Absolutist thinking ("always use X")
+- Over-engineering
+
+---
+
+## 🎯 Interview Answer Template
+
+```
+For [topic]:
+1. SUCCESS: [Situation, action, result]
+2. FAILURE: [What went wrong, lesson learned]
+3. TRADE-OFF: [When I chose A over B, why]
+```

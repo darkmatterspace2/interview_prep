@@ -897,8 +897,6 @@ def reconstruct_path(routes: list) -> list:
     
     while current in graph:
         current = graph[current]
-        path.append(current)
-    
     return path
 
 # Test
@@ -929,3 +927,792 @@ def reconstruct_path_safe(routes):
     
     return path
 ```
+
+---
+
+# Question Bank 5: Dictionaries, Sets & Data Aggregation
+
+> **Amazon Data Engineer Style** - Focus on Hash Maps, Sets, and String Parsing
+
+---
+
+## Part 1: Must-Master Basics (Dictionaries & Sets)
+
+### Q1: Word Frequency Counter
+
+> Given a long string (like a paragraph), write a function to count how many times each word appears.
+> **Goal:** Use a dictionary where key = word and value = count.
+> **Bonus:** Ignore punctuation and case.
+
+```python
+import re
+from collections import Counter
+
+def word_frequency(text: str) -> dict:
+    """
+    Count word frequencies, ignoring punctuation and case.
+    
+    Time: O(n) where n = characters in text
+    Space: O(w) where w = unique words
+    """
+    # Method 1: Manual with dictionary
+    # Remove punctuation and convert to lowercase
+    cleaned = re.sub(r'[^\w\s]', '', text.lower())
+    words = cleaned.split()
+    
+    freq = {}
+    for word in words:
+        freq[word] = freq.get(word, 0) + 1
+    
+    return freq
+
+def word_frequency_counter(text: str) -> dict:
+    """Same task using Counter (more Pythonic)"""
+    cleaned = re.sub(r'[^\w\s]', '', text.lower())
+    return dict(Counter(cleaned.split()))
+
+# Test
+text = """
+Amazon delivers millions of packages daily. Amazon's logistics network
+is vast. Packages are delivered by Amazon and third-party carriers.
+"""
+result = word_frequency(text)
+print(result)
+# {'amazon': 2, 'delivers': 1, 'millions': 1, 'of': 1, 'packages': 2, 
+#  'daily': 1, 'amazons': 1, 'logistics': 1, 'network': 1, 'is': 1, 
+#  'vast': 1, 'are': 1, 'delivered': 1, 'by': 1, 'and': 1, 
+#  'thirdparty': 1, 'carriers': 1}
+
+# Advanced: Get top N most frequent words
+from collections import Counter
+
+def top_n_words(text: str, n: int) -> list:
+    """Return top N most frequent words"""
+    cleaned = re.sub(r'[^\w\s]', '', text.lower())
+    counter = Counter(cleaned.split())
+    return counter.most_common(n)
+
+print(top_n_words(text, 3))
+# [('amazon', 2), ('packages', 2), ('delivers', 1)]
+```
+
+**Key Points:**
+- `dict.get(key, default)` returns default if key doesn't exist
+- `Counter` is optimized for counting and provides `most_common(n)`
+- Regex `[^\w\s]` matches any character that's NOT a word char or whitespace
+- Always normalize case before comparing text
+
+---
+
+### Q2: Find Duplicates in a List
+
+> Given a list of integers `[1, 2, 3, 2, 4, 5, 5]`, return a list of only the duplicate elements.
+> **Goal:** Use a set to track what you've seen.
+
+```python
+def find_duplicates(nums: list) -> list:
+    """
+    Find all duplicate values in a list.
+    
+    Time: O(n)
+    Space: O(n)
+    """
+    seen = set()
+    duplicates = set()  # Use set to avoid duplicate duplicates
+    
+    for num in nums:
+        if num in seen:
+            duplicates.add(num)
+        else:
+            seen.add(num)
+    
+    return list(duplicates)
+
+# Test
+nums = [1, 2, 3, 2, 4, 5, 5]
+print(find_duplicates(nums))  # [2, 5]
+
+# Alternative: Using Counter
+from collections import Counter
+
+def find_duplicates_v2(nums: list) -> list:
+    """Find duplicates using Counter"""
+    counts = Counter(nums)
+    return [num for num, count in counts.items() if count > 1]
+
+print(find_duplicates_v2(nums))  # [2, 5]
+
+# Alternative: One-liner (less efficient but clever)
+def find_duplicates_v3(nums: list) -> list:
+    """Find duplicates - elements that appear more than once"""
+    return list(set(x for x in nums if nums.count(x) > 1))
+    # WARNING: O(n²) - don't use for large lists!
+```
+
+**Key Points:**
+- `set` provides O(1) lookup for `in` operator
+- Use two sets: one for "seen", one for "duplicates"
+- Using `set` for duplicates automatically handles duplicates of duplicates
+- Avoid `list.count()` in loops — it's O(n) per call!
+
+**Interview Variation: Find elements that appear exactly K times**
+
+```python
+def find_k_occurrences(nums: list, k: int) -> list:
+    """Find all elements that appear exactly k times"""
+    counts = Counter(nums)
+    return [num for num, count in counts.items() if count == k]
+
+print(find_k_occurrences([1, 2, 2, 3, 3, 3], 2))  # [2]
+print(find_k_occurrences([1, 2, 2, 3, 3, 3], 3))  # [3]
+```
+
+---
+
+### Q3: Group Anagrams (Classic DE Interview Question)
+
+> Given a list of strings `["eat", "tea", "tan", "ate", "nat", "bat"]`, group them together.
+> **Output:** `[["bat"], ["nat", "tan"], ["ate", "eat", "tea"]]`
+
+```python
+from collections import defaultdict
+
+def group_anagrams(strs: list) -> list:
+    """
+    Group words that are anagrams of each other.
+    
+    Key insight: Anagrams have the same sorted characters.
+    
+    Time: O(n * k log k) where n = strings, k = max string length
+    Space: O(n * k) for storing results
+    """
+    # Dictionary: sorted_word -> list of original words
+    anagram_map = defaultdict(list)
+    
+    for word in strs:
+        # Sort the word to create a unique key for anagrams
+        key = ''.join(sorted(word))  # "eat" -> "aet", "tea" -> "aet"
+        anagram_map[key].append(word)
+    
+    return list(anagram_map.values())
+
+# Test
+words = ["eat", "tea", "tan", "ate", "nat", "bat"]
+print(group_anagrams(words))
+# [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]
+
+# Alternative: Using tuple as key (slightly more efficient)
+def group_anagrams_v2(strs: list) -> list:
+    """Use tuple of sorted chars as key (hashable)"""
+    anagram_map = defaultdict(list)
+    
+    for word in strs:
+        key = tuple(sorted(word))  # ('a', 'e', 't')
+        anagram_map[key].append(word)
+    
+    return list(anagram_map.values())
+
+# Alternative: Character count as key (O(n * k) time)
+def group_anagrams_v3(strs: list) -> list:
+    """Use character frequency as key (faster for long strings)"""
+    anagram_map = defaultdict(list)
+    
+    for word in strs:
+        # Count of each letter (26 letters)
+        count = [0] * 26
+        for char in word:
+            count[ord(char) - ord('a')] += 1
+        key = tuple(count)
+        anagram_map[key].append(word)
+    
+    return list(anagram_map.values())
+```
+
+**Key Points:**
+- **Why this question matters:** Tests understanding of:
+  - Hash maps with custom keys
+  - Sorting as a grouping mechanism
+  - Converting to hashable types (tuple vs list)
+- `defaultdict(list)` auto-creates empty list for new keys
+- Using `tuple(sorted(word))` is hashable; `list` is NOT hashable
+
+**Interview Follow-up: Handle case-insensitivity and spaces**
+
+```python
+def group_anagrams_advanced(phrases: list) -> list:
+    """Handle phrases with spaces and mixed case"""
+    anagram_map = defaultdict(list)
+    
+    for phrase in phrases:
+        # Normalize: lowercase, remove spaces, sort
+        normalized = ''.join(sorted(phrase.lower().replace(' ', '')))
+        anagram_map[normalized].append(phrase)
+    
+    return list(anagram_map.values())
+
+print(group_anagrams_advanced(["Listen", "Silent", "inlets"]))
+# [['Listen', 'Silent', 'inlets']]
+```
+
+---
+
+## Part 2: String Manipulation & Log Parsing
+
+### Q4: Log Error Extraction
+
+> **Input:** A list of log strings: `["INFO: User logged in", "ERROR: DB connection failed", "INFO: User clicked"]`
+> **Task:** Return a dictionary counting how many times each log level (INFO, ERROR, WARN) appears.
+
+```python
+def count_log_levels(logs: list) -> dict:
+    """
+    Count occurrences of each log level.
+    
+    Time: O(n) where n = number of log entries
+    Space: O(1) - fixed number of log levels
+    """
+    counts = {'INFO': 0, 'ERROR': 0, 'WARN': 0, 'DEBUG': 0}
+    
+    for log in logs:
+        # Extract log level (first word before colon)
+        level = log.split(':')[0].strip()
+        if level in counts:
+            counts[level] += 1
+    
+    return counts
+
+# Test
+logs = [
+    "INFO: User logged in",
+    "ERROR: DB connection failed",
+    "INFO: User clicked",
+    "WARN: Memory usage high",
+    "ERROR: Connection timeout"
+]
+print(count_log_levels(logs))
+# {'INFO': 2, 'ERROR': 2, 'WARN': 1, 'DEBUG': 0}
+
+# Advanced: Also extract error messages
+def parse_logs_detailed(logs: list) -> dict:
+    """Parse logs with full details"""
+    from collections import defaultdict
+    
+    result = defaultdict(list)
+    
+    for log in logs:
+        parts = log.split(':', 1)  # Split only on first colon
+        if len(parts) >= 2:
+            level = parts[0].strip()
+            message = parts[1].strip()
+            result[level].append(message)
+    
+    return dict(result)
+
+print(parse_logs_detailed(logs))
+# {'INFO': ['User logged in', 'User clicked'], 
+#  'ERROR': ['DB connection failed', 'Connection timeout'], 
+#  'WARN': ['Memory usage high']}
+
+# Real-world: Parse structured logs with timestamp
+import re
+from datetime import datetime
+
+def parse_structured_log(log: str) -> dict:
+    """Parse log with format: [TIMESTAMP] LEVEL: MESSAGE"""
+    pattern = r'\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] (\w+): (.+)'
+    match = re.match(pattern, log)
+    
+    if match:
+        timestamp_str, level, message = match.groups()
+        return {
+            'timestamp': datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S'),
+            'level': level,
+            'message': message
+        }
+    return None
+
+log = "[2024-01-15 10:30:45] ERROR: Database connection failed"
+print(parse_structured_log(log))
+# {'timestamp': datetime(2024, 1, 15, 10, 30, 45), 
+#  'level': 'ERROR', 'message': 'Database connection failed'}
+```
+
+**Key Points:**
+- `str.split(':')` splits on colon; `split(':', 1)` limits to first split
+- Use `defaultdict(list)` for grouping messages
+- Regex is powerful for structured log parsing
+- Always handle edge cases (malformed logs, missing colons)
+
+**Interview Variation: Filter logs by time range**
+
+```python
+def filter_logs_by_time(logs: list, start_time: str, end_time: str) -> list:
+    """Filter logs within a time range"""
+    start = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+    end = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+    
+    filtered = []
+    for log in logs:
+        parsed = parse_structured_log(log)
+        if parsed and start <= parsed['timestamp'] <= end:
+            filtered.append(log)
+    
+    return filtered
+```
+
+---
+
+### Q5: IP Address Anonymizer
+
+> **Task:** Write a function that takes a string containing an IP address (e.g., `"User 192.168.1.1 connected"`) and replaces the last octet with `0`.
+> **Output:** `"User 192.168.1.0 connected"`
+
+```python
+import re
+
+def anonymize_ip(text: str) -> str:
+    """
+    Replace last octet of any IP address with 0.
+    
+    Time: O(n) where n = length of text
+    Space: O(n) for result string
+    """
+    # IP pattern: 4 groups of 1-3 digits separated by dots
+    pattern = r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.)\d{1,3}'
+    
+    # Replace: keep first 3 octets, replace last with 0
+    return re.sub(pattern, r'\g<1>0', text)
+
+# Test
+text = "User 192.168.1.1 connected from server 10.0.0.255"
+print(anonymize_ip(text))
+# "User 192.168.1.0 connected from server 10.0.0.0"
+
+# Alternative: More strict IP validation
+def anonymize_ip_strict(text: str) -> str:
+    """Stricter IP matching (0-255 per octet)"""
+    def validate_and_anonymize(match):
+        octets = match.group().split('.')
+        # Validate each octet is 0-255
+        if all(0 <= int(o) <= 255 for o in octets):
+            return '.'.join(octets[:3]) + '.0'
+        return match.group()  # Return original if invalid
+    
+    pattern = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
+    return re.sub(pattern, validate_and_anonymize, text)
+
+# Alternative: Without regex
+def anonymize_ip_no_regex(text: str) -> str:
+    """Manual string parsing approach"""
+    import ipaddress
+    
+    words = text.split()
+    result = []
+    
+    for word in words:
+        try:
+            ip = ipaddress.ip_address(word.strip('.,;:'))
+            # Get first 3 octets and add .0
+            octets = str(ip).split('.')
+            anonymized = '.'.join(octets[:3]) + '.0'
+            result.append(word.replace(str(ip), anonymized))
+        except ValueError:
+            result.append(word)
+    
+    return ' '.join(result)
+
+print(anonymize_ip_no_regex("User 192.168.1.1 connected"))
+# "User 192.168.1.0 connected"
+
+# GDPR-style: Hash the IP instead of truncating
+import hashlib
+
+def hash_ip(text: str) -> str:
+    """Replace IP with hash for stronger anonymization"""
+    pattern = r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
+    
+    def hash_match(match):
+        ip = match.group()
+        hashed = hashlib.md5(ip.encode()).hexdigest()[:8]
+        return f"IP_{hashed}"
+    
+    return re.sub(pattern, hash_match, text)
+
+print(hash_ip("User 192.168.1.1 connected"))
+# "User IP_a88f1ae5 connected"
+```
+
+**Key Points:**
+- `\d{1,3}` matches 1-3 digits
+- `\g<1>` in replacement refers to capture group 1
+- Consider using `ipaddress` module for validation
+- For GDPR compliance, hashing may be preferred over truncation
+
+---
+
+## Part 3: LeetCode Practice Solutions
+
+### Two Sum (Easy)
+
+> Given array of integers, return indices of two numbers that add up to target.
+
+```python
+def two_sum(nums: list, target: int) -> list:
+    """
+    Find two numbers that add up to target.
+    
+    Time: O(n) - single pass with hash map
+    Space: O(n) - store seen numbers
+    """
+    seen = {}  # value -> index
+    
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in seen:
+            return [seen[complement], i]
+        seen[num] = i
+    
+    return []  # No solution found
+
+# Test
+print(two_sum([2, 7, 11, 15], 9))  # [0, 1]
+print(two_sum([3, 2, 4], 6))       # [1, 2]
+print(two_sum([3, 3], 6))          # [0, 1]
+```
+
+**Why it matters for DE:** Teaches O(n) lookup vs O(n²) brute force.
+
+---
+
+### Contains Duplicate (Easy)
+
+> Return true if any value appears at least twice in the array.
+
+```python
+def contains_duplicate(nums: list) -> bool:
+    """
+    Check if list contains duplicates.
+    
+    Time: O(n)
+    Space: O(n)
+    """
+    return len(nums) != len(set(nums))
+
+# Alternative: Early exit
+def contains_duplicate_v2(nums: list) -> bool:
+    seen = set()
+    for num in nums:
+        if num in seen:
+            return True
+        seen.add(num)
+    return False
+
+# Test
+print(contains_duplicate([1, 2, 3, 1]))  # True
+print(contains_duplicate([1, 2, 3, 4]))  # False
+```
+
+**Why it matters for DE:** Basic set usage for deduplication.
+
+---
+
+### Top K Frequent Elements (Medium)
+
+> Given array and k, return the k most frequent elements.
+
+```python
+from collections import Counter
+import heapq
+
+def top_k_frequent(nums: list, k: int) -> list:
+    """
+    Find k most frequent elements.
+    
+    Time: O(n log k) using heap
+    Space: O(n)
+    """
+    counts = Counter(nums)
+    # heapq.nlargest is O(n log k)
+    return [x for x, _ in heapq.nlargest(k, counts.items(), key=lambda x: x[1])]
+
+# Alternative: Using Counter.most_common
+def top_k_frequent_v2(nums: list, k: int) -> list:
+    """Simpler approach using Counter.most_common"""
+    return [x for x, _ in Counter(nums).most_common(k)]
+
+# Test
+print(top_k_frequent([1,1,1,2,2,3], 2))  # [1, 2]
+print(top_k_frequent([1], 1))             # [1]
+
+# Bucket sort approach: O(n) time!
+def top_k_frequent_bucket(nums: list, k: int) -> list:
+    """
+    O(n) solution using bucket sort.
+    """
+    counts = Counter(nums)
+    # Bucket: index = frequency, value = list of elements
+    buckets = [[] for _ in range(len(nums) + 1)]
+    
+    for num, freq in counts.items():
+        buckets[freq].append(num)
+    
+    result = []
+    # Iterate from highest frequency
+    for i in range(len(buckets) - 1, 0, -1):
+        result.extend(buckets[i])
+        if len(result) >= k:
+            return result[:k]
+    
+    return result
+```
+
+**Why it matters for DE:** Aggregation + sorting is crucial for analytics.
+
+---
+
+### Product of Array Except Self (Medium)
+
+> Return array where each element is product of all other elements.
+> Constraint: O(n) time, no division.
+
+```python
+def product_except_self(nums: list) -> list:
+    """
+    Product of array except self without division.
+    
+    Time: O(n)
+    Space: O(1) excluding output
+    """
+    n = len(nums)
+    result = [1] * n
+    
+    # Left products: result[i] = product of nums[0..i-1]
+    left_product = 1
+    for i in range(n):
+        result[i] = left_product
+        left_product *= nums[i]
+    
+    # Right products: multiply by product of nums[i+1..n-1]
+    right_product = 1
+    for i in range(n - 1, -1, -1):
+        result[i] *= right_product
+        right_product *= nums[i]
+    
+    return result
+
+# Test
+print(product_except_self([1, 2, 3, 4]))  # [24, 12, 8, 6]
+# result[0] = 2*3*4 = 24
+# result[1] = 1*3*4 = 12
+# result[2] = 1*2*4 = 8
+# result[3] = 1*2*3 = 6
+```
+
+**Why it matters for DE:** Array manipulation without nested loops.
+
+---
+
+### Valid Anagram (Easy)
+
+> Determine if two strings are anagrams.
+
+```python
+from collections import Counter
+
+def is_anagram(s: str, t: str) -> bool:
+    """
+    Check if t is an anagram of s.
+    
+    Time: O(n)
+    Space: O(1) - at most 26 characters
+    """
+    return Counter(s) == Counter(t)
+
+# Alternative: Sorting (O(n log n))
+def is_anagram_sort(s: str, t: str) -> bool:
+    return sorted(s) == sorted(t)
+
+# Test
+print(is_anagram("anagram", "nagaram"))  # True
+print(is_anagram("rat", "car"))          # False
+```
+
+---
+
+### First Unique Character in a String (Easy)
+
+> Return index of first non-repeating character.
+
+```python
+from collections import Counter
+
+def first_uniq_char(s: str) -> int:
+    """
+    Find first unique character's index.
+    
+    Time: O(n)
+    Space: O(1) - at most 26 chars
+    """
+    counts = Counter(s)
+    
+    for i, char in enumerate(s):
+        if counts[char] == 1:
+            return i
+    
+    return -1
+
+# Test
+print(first_uniq_char("leetcode"))      # 0 ('l')
+print(first_uniq_char("loveleetcode"))  # 2 ('v')
+print(first_uniq_char("aabb"))          # -1
+```
+
+**Why it matters for DE:** Similar to finding unique keys in datasets.
+
+---
+
+## Part 4: Take Home Challenge
+
+### Server CPU Average Calculator
+
+> Given a list of tuples `(server_name, cpu_usage_percent)`, return a dictionary with the **average CPU usage** for each server.
+
+```python
+from collections import defaultdict
+
+def calculate_avg_cpu(data: list) -> dict:
+    """
+    Calculate average CPU usage per server.
+    
+    Time: O(n) where n = number of data points
+    Space: O(s) where s = unique servers
+    """
+    # Track sum and count for each server
+    server_stats = defaultdict(lambda: {'sum': 0, 'count': 0})
+    
+    for server, cpu in data:
+        server_stats[server]['sum'] += cpu
+        server_stats[server]['count'] += 1
+    
+    # Calculate averages
+    return {
+        server: stats['sum'] / stats['count']
+        for server, stats in server_stats.items()
+    }
+
+# Test
+data = [
+    ("ServerA", 15),
+    ("ServerB", 10),
+    ("ServerA", 55),
+    ("ServerC", 80),
+    ("ServerB", 5)
+]
+print(calculate_avg_cpu(data))
+# {'ServerA': 35.0, 'ServerB': 7.5, 'ServerC': 80.0}
+
+# Alternative: Using two dictionaries
+def calculate_avg_cpu_v2(data: list) -> dict:
+    """Alternative with separate sum and count dicts"""
+    sums = defaultdict(int)
+    counts = defaultdict(int)
+    
+    for server, cpu in data:
+        sums[server] += cpu
+        counts[server] += 1
+    
+    return {server: sums[server] / counts[server] for server in sums}
+
+# Alternative: Using pandas (for large datasets)
+def calculate_avg_cpu_pandas(data: list) -> dict:
+    """Pandas approach (better for large data)"""
+    import pandas as pd
+    
+    df = pd.DataFrame(data, columns=['server', 'cpu'])
+    return df.groupby('server')['cpu'].mean().to_dict()
+
+# Advanced: Add min, max, percentiles
+def calculate_server_stats(data: list) -> dict:
+    """Comprehensive server statistics"""
+    from statistics import mean, stdev
+    
+    server_data = defaultdict(list)
+    for server, cpu in data:
+        server_data[server].append(cpu)
+    
+    return {
+        server: {
+            'avg': mean(cpus),
+            'min': min(cpus),
+            'max': max(cpus),
+            'count': len(cpus),
+            'stdev': stdev(cpus) if len(cpus) > 1 else 0
+        }
+        for server, cpus in server_data.items()
+    }
+
+print(calculate_server_stats(data))
+# {'ServerA': {'avg': 35.0, 'min': 15, 'max': 55, 'count': 2, 'stdev': 28.28...},
+#  'ServerB': {'avg': 7.5, 'min': 5, 'max': 10, 'count': 2, 'stdev': 3.53...},
+#  'ServerC': {'avg': 80.0, 'min': 80, 'max': 80, 'count': 1, 'stdev': 0}}
+```
+
+**Key Points:**
+- Use `defaultdict` to avoid KeyError
+- Track both sum AND count for computing average
+- Dictionary comprehension for final result
+- Consider edge cases: empty list, single value per server
+
+---
+
+## Summary: Python Patterns for Data Engineering Interviews
+
+| Pattern | When to Use | Example |
+|---------|-------------|---------|
+| **`dict.get(key, default)`** | Safe access with default | `counts.get(word, 0) + 1` |
+| **`defaultdict(list)`** | Group items by key | Anagram grouping |
+| **`defaultdict(int)`** | Count occurrences | Word frequency |
+| **`set()` for lookup** | O(1) membership check | Find duplicates |
+| **`Counter`** | Frequency counting | Top K elements |
+| **`sorted()` as key** | Normalize for grouping | Anagram key |
+| **Regex for parsing** | Structured text extraction | Log parsing, IP detection |
+| **Two-pointer/Hash map** | Pair finding | Two Sum |
+
+---
+
+## Common Interview Mistakes to Avoid
+
+1. **Using `list.count()` in loops** — O(n²) instead of O(n)
+   ```python
+   # BAD: O(n²)
+   [x for x in nums if nums.count(x) > 1]
+   
+   # GOOD: O(n)
+   Counter(nums)
+   ```
+
+2. **Forgetting `list` is not hashable**
+   ```python
+   # BAD: unhashable type
+   {[1,2,3]: "value"}
+   
+   # GOOD: use tuple
+   {(1,2,3): "value"}
+   ```
+
+3. **Modifying dict/list while iterating**
+   ```python
+   # BAD: RuntimeError
+   for k in d:
+       del d[k]
+   
+   # GOOD: iterate over copy
+   for k in list(d.keys()):
+       del d[k]
+   ```
+
+4. **Not handling edge cases**
+   - Empty input
+   - Single element
+   - All duplicates / no duplicates
+   - Case sensitivity

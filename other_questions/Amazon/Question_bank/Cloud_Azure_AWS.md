@@ -4,9 +4,33 @@
 
 ---
 
-## 1️⃣ AWS Storage & Compute (Part 2 Questions)
+<a id="index"></a>
+## 📑 Table of Contents
 
-### S3 Partitioning for Athena Optimization
+| Section | Topics |
+|---------|--------|
+| [1️⃣ AWS Storage & Compute](#1️⃣-aws-storage--compute-part-2-questions) | S3, Athena, Glue, EMR, Kinesis |
+| &nbsp;&nbsp;&nbsp;└ [S3 Partitioning for Athena](#s3-partitioning-for-athena-optimization) | Hive-style partitioning |
+| &nbsp;&nbsp;&nbsp;└ [Glue vs EMR](#glue-vs-emr-when-to-choose-which) | Decision matrix |
+| &nbsp;&nbsp;&nbsp;└ [Kinesis Data Streams vs Firehose](#kinesis-data-streams-vs-firehose) | Real-time vs delivery |
+| &nbsp;&nbsp;&nbsp;└ [CloudFormation vs Terraform](#cloudformation-vs-terraform) | IaC comparison |
+| [2️⃣ Redshift Architecture](#2️⃣-redshift-architecture) | Leader/Compute nodes |
+| &nbsp;&nbsp;&nbsp;└ [Leader Node vs Compute Node](#leader-node-vs-compute-node) | Architecture diagram |
+| [3️⃣ AWS to Azure Comparison](#3️⃣-aws-to-azure-comparison) | Service mapping table |
+| [4️⃣ Hands-On Pipeline Components](#4️⃣-hands-on-typical-pipeline-components) | AWS & Azure examples |
+| &nbsp;&nbsp;&nbsp;└ [AWS Data Pipeline Architecture](#aws-data-pipeline-architecture) | Glue job example |
+| &nbsp;&nbsp;&nbsp;└ [Azure Data Pipeline Architecture](#azure-data-pipeline-architecture) | Databricks example |
+| [5️⃣ Lake Formation & Data Governance](#5️⃣-lake-formation--data-governance) | Permissions, Purview |
+| &nbsp;&nbsp;&nbsp;└ [Lake Formation Permissions](#lake-formation-permissions) | AWS permissions |
+| &nbsp;&nbsp;&nbsp;└ [Azure Purview Equivalent](#azure-purview-equivalent) | Azure governance |
+
+---
+
+<a id="1️⃣-aws-storage--compute-part-2-questions"></a>
+## 1️⃣ AWS Storage & Compute (Part 2 Questions) [↩️](#index)
+
+<a id="s3-partitioning-for-athena-optimization"></a>
+### S3 Partitioning for Athena Optimization [↩️](#index)
 
 **Question:** How would you partition S3 data for a log ingestion pipeline receiving terabytes of data daily to optimize for Athena queries?
 
@@ -61,7 +85,8 @@ MSCK REPAIR TABLE logs;
 
 ---
 
-### Glue vs EMR: When to Choose Which?
+<a id="glue-vs-emr-when-to-choose-which"></a>
+### Glue vs EMR: When to Choose Which? [↩️](#index)
 
 | Factor | AWS Glue | EMR |
 |--------|----------|-----|
@@ -105,7 +130,8 @@ EMR (Spot, 70% savings):
 
 ---
 
-### Kinesis Data Streams vs Firehose
+<a id="kinesis-data-streams-vs-firehose"></a>
+### Kinesis Data Streams vs Firehose [↩️](#index)
 
 | Feature | Kinesis Data Streams | Kinesis Firehose |
 |---------|---------------------|------------------|
@@ -137,7 +163,8 @@ Why Firehose (not Streams):
 
 ---
 
-### CloudFormation vs Terraform
+<a id="cloudformation-vs-terraform"></a>
+### CloudFormation vs Terraform [↩️](#index)
 
 | Aspect | CloudFormation | Terraform |
 |--------|----------------|-----------|
@@ -171,9 +198,11 @@ terraform {
 
 ---
 
-## 2️⃣ Redshift Architecture
+<a id="2️⃣-redshift-architecture"></a>
+## 2️⃣ Redshift Architecture [↩️](#index)
 
-### Leader Node vs Compute Node
+<a id="leader-node-vs-compute-node"></a>
+### Leader Node vs Compute Node [↩️](#index)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -219,7 +248,8 @@ SELECT region, COUNT(*) FROM shipments GROUP BY region;  -- Parallel
 
 ---
 
-## 3️⃣ AWS to Azure Comparison
+<a id="3️⃣-aws-to-azure-comparison"></a>
+## 3️⃣ AWS to Azure Comparison [↩️](#index)
 
 | AWS Service | Azure Equivalent | Notes |
 |-------------|------------------|-------|
@@ -236,9 +266,11 @@ SELECT region, COUNT(*) FROM shipments GROUP BY region;  -- Parallel
 
 ---
 
-## 4️⃣ Hands-On: Typical Pipeline Components
+<a id="4️⃣-hands-on-typical-pipeline-components"></a>
+## 4️⃣ Hands-On: Typical Pipeline Components [↩️](#index)
 
-### AWS Data Pipeline Architecture
+<a id="aws-data-pipeline-architecture"></a>
+### AWS Data Pipeline Architecture [↩️](#index)
 
 ```python
 # Glue Job Example: Bronze to Silver
@@ -279,7 +311,8 @@ silver_df.write \
 job.commit()
 ```
 
-### Azure Data Pipeline Architecture
+<a id="azure-data-pipeline-architecture"></a>
+### Azure Data Pipeline Architecture [↩️](#index)
 
 ```python
 # Databricks Notebook: Bronze to Silver (Azure)
@@ -306,9 +339,11 @@ silver_df.write \
 
 ---
 
-## 5️⃣ Lake Formation & Data Governance
+<a id="5️⃣-lake-formation--data-governance"></a>
+## 5️⃣ Lake Formation & Data Governance [↩️](#index)
 
-### Lake Formation Permissions
+<a id="lake-formation-permissions"></a>
+### Lake Formation Permissions [↩️](#index)
 
 ```python
 # Grant permissions using Lake Formation
@@ -344,7 +379,8 @@ response = client.grant_permissions(
 )
 ```
 
-### Azure Purview Equivalent
+<a id="azure-purview-equivalent"></a>
+### Azure Purview Equivalent [↩️](#index)
 
 ```python
 # Register data source in Purview

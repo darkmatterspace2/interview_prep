@@ -4,7 +4,35 @@
 
 ---
 
-## 📌 STAR Framework
+<a id="index"></a>
+## 📑 Table of Contents
+
+| Section | Topics |
+|---------|--------|
+| [📌 STAR Framework](#star-framework) | How to structure behavioral answers |
+| [1️⃣ Ownership / Dive Deep](#1️⃣-ownership--dive-deep-q91-q95) | Q91-Q95: Pipeline fixes, debugging, reliability |
+| &nbsp;&nbsp;&nbsp;└ [Q91: Fixed a broken data pipeline](#q91-fixed-a-broken-data-pipeline) | OOM debugging, broadcast joins |
+| &nbsp;&nbsp;&nbsp;└ [Q92: Debugged a data discrepancy](#q92-debugged-a-data-discrepancy) | $2M finance mismatch |
+| &nbsp;&nbsp;&nbsp;└ [Q93: Found root cause of incorrect metrics](#q93-found-root-cause-of-incorrect-metrics) | Carrier performance dispute |
+| &nbsp;&nbsp;&nbsp;└ [Q94: Took ownership beyond your role](#q94-took-ownership-beyond-your-role) | Cross-team unblocking |
+| &nbsp;&nbsp;&nbsp;└ [Q95: Improved reliability of data systems](#q95-improved-reliability-of-data-systems) | 80% incident reduction |
+| [2️⃣ Bias for Action / Deliver Results](#2️⃣-bias-for-action--deliver-results-q96-q100) | Q96-Q100: Deadlines, speed, automation |
+| &nbsp;&nbsp;&nbsp;└ [Q96: Delivered under tight deadlines](#q96-delivered-under-tight-deadlines) | Black Friday scaling |
+| &nbsp;&nbsp;&nbsp;└ [Q97: Chose speed over perfection](#q97-chose-speed-over-perfection--why) | GDPR compliance |
+| &nbsp;&nbsp;&nbsp;└ [Q98: Made a decision with incomplete data](#q98-made-a-decision-with-incomplete-data) | Null handling decision |
+| &nbsp;&nbsp;&nbsp;└ [Q99: Automated a manual process](#q99-automated-a-manual-process) | Data quality automation |
+| &nbsp;&nbsp;&nbsp;└ [Q100: Reduced cost or improved performance](#q100-reduced-cost-or-improved-performance-measurably) | $360K/year savings |
+| [3️⃣ Additional Behavioral Questions](#3️⃣-part-2-additional-behavioral-questions-q101-q104) | Q101-Q104: Customer obsession, calculated risks |
+| &nbsp;&nbsp;&nbsp;└ [Q101: Customer Obsession](#q101-customer-obsession--pushed-back-on-requirements) | Pushed back on requirements |
+| &nbsp;&nbsp;&nbsp;└ [Q102: Ownership — 2 AM failure](#q102-ownership--2-am-pipeline-failure) | 2 AM pipeline recovery |
+| &nbsp;&nbsp;&nbsp;└ [Q103: Deliver Results](#q103-deliver-results--simplified-complex-solution) | Simplified complex solution |
+| &nbsp;&nbsp;&nbsp;└ [Q104: Bias for Action](#q104-bias-for-action--calculated-risk-to-fix-data-issue) | Calculated risk decision |
+| [� Tips for Behavioral Interviews](#-tips-for-behavioral-interviews) | Best practices |
+
+---
+
+<a id="star-framework"></a>
+## �📌 STAR Framework [↩️](#index)
 
 ```
 SITUATION: Set the context (1-2 sentences)
@@ -15,9 +43,11 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-## 1️⃣ Ownership / Dive Deep (Q91-Q95)
+<a id="1️⃣-ownership--dive-deep-q91-q95"></a>
+## 1️⃣ Ownership / Dive Deep (Q91-Q95) [↩️](#index)
 
-### Q91: Fixed a broken data pipeline
+<a id="q91-fixed-a-broken-data-pipeline"></a>
+### Q91: Fixed a broken data pipeline [↩️](#index)
 
 **SITUATION:** Our daily shipment aggregation pipeline started failing intermittently at ~2 AM, impacting morning dashboard updates for 200+ operations managers.
 
@@ -37,7 +67,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q92: Debugged a data discrepancy
+<a id="q92-debugged-a-data-discrepancy"></a>
+### Q92: Debugged a data discrepancy [↩️](#index)
 
 **SITUATION:** Finance team reported $2M mismatch between our data warehouse and ERP system for Q4 revenue.
 
@@ -57,7 +88,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q93: Found root cause of incorrect metrics
+<a id="q93-found-root-cause-of-incorrect-metrics"></a>
+### Q93: Found root cause of incorrect metrics [↩️](#index)
 
 **SITUATION:** Carrier performance dashboard showed FedEx at 95% on-time delivery, but carrier disputed this (claimed 98%).
 
@@ -77,7 +109,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q94: Took ownership beyond your role
+<a id="q94-took-ownership-beyond-your-role"></a>
+### Q94: Took ownership beyond your role [↩️](#index)
 
 **SITUATION:** Data science team was blocked for 2 weeks waiting for feature data that another team (Platform) was supposed to provide.
 
@@ -97,7 +130,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q95: Improved reliability of data systems
+<a id="q95-improved-reliability-of-data-systems"></a>
+### Q95: Improved reliability of data systems [↩️](#index)
 
 **SITUATION:** Our data platform had 4-5 P2 incidents per month, mostly due to lacking monitoring and unclear ownership.
 
@@ -117,9 +151,11 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-## 2️⃣ Bias for Action / Deliver Results (Q96-Q100)
+<a id="2️⃣-bias-for-action--deliver-results-q96-q100"></a>
+## 2️⃣ Bias for Action / Deliver Results (Q96-Q100) [↩️](#index)
 
-### Q96: Delivered under tight deadlines
+<a id="q96-delivered-under-tight-deadlines"></a>
+### Q96: Delivered under tight deadlines [↩️](#index)
 
 **SITUATION:** Black Friday data pipeline needed to handle 5x normal volume. We learned this 3 weeks before the event.
 
@@ -139,7 +175,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q97: Chose speed over perfection — why?
+<a id="q97-chose-speed-over-perfection--why"></a>
+### Q97: Chose speed over perfection — why? [↩️](#index)
 
 **SITUATION:** New regulatory requirement: must delete customer data within 72 hours of request. Compliance deadline in 2 weeks.
 
@@ -164,7 +201,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q98: Made a decision with incomplete data
+<a id="q98-made-a-decision-with-incomplete-data"></a>
+### Q98: Made a decision with incomplete data [↩️](#index)
 
 **SITUATION:** Pipeline was failing due to upstream API returning unexpected nulls. We didn't know if it was a bug or intentional change.
 
@@ -187,7 +225,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q99: Automated a manual process
+<a id="q99-automated-a-manual-process"></a>
+### Q99: Automated a manual process [↩️](#index)
 
 **SITUATION:** Data quality team spent 10 hours/week manually checking pipeline outputs: row counts, null rates, freshness.
 
@@ -207,7 +246,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q100: Reduced cost or improved performance measurably
+<a id="q100-reduced-cost-or-improved-performance-measurably"></a>
+### Q100: Reduced cost or improved performance measurably [↩️](#index)
 
 **SITUATION:** EMR cluster costs were $45K/month for batch processing, and most of the day cluster sat idle.
 
@@ -227,9 +267,11 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-## 3️⃣ Part 2: Additional Behavioral Questions (Q101-Q104)
+<a id="3️⃣-part-2-additional-behavioral-questions-q101-q104"></a>
+## 3️⃣ Part 2: Additional Behavioral Questions (Q101-Q104) [↩️](#index)
 
-### Q101: Customer Obsession — Pushed back on requirements
+<a id="q101-customer-obsession--pushed-back-on-requirements"></a>
+### Q101: Customer Obsession — Pushed back on requirements [↩️](#index)
 
 **SITUATION:** Product team wanted real-time inventory updates (< 1 second latency) for their new feature.
 
@@ -249,7 +291,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q102: Ownership — 2 AM pipeline failure
+<a id="q102-ownership--2-am-pipeline-failure"></a>
+### Q102: Ownership — 2 AM pipeline failure [↩️](#index)
 
 **SITUATION:** Received PagerDuty alert at 2:15 AM. Daily revenue pipeline failed, blocking finance team's morning report.
 
@@ -270,7 +313,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q103: Deliver Results — Simplified complex solution
+<a id="q103-deliver-results--simplified-complex-solution"></a>
+### Q103: Deliver Results — Simplified complex solution [↩️](#index)
 
 **SITUATION:** Team was designing ML feature pipeline with real-time streaming, feature store, and custom serving layer. ETA: 4 months.
 
@@ -290,7 +334,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-### Q104: Bias for Action — Calculated risk to fix data issue
+<a id="q104-bias-for-action--calculated-risk-to-fix-data-issue"></a>
+### Q104: Bias for Action — Calculated risk to fix data issue [↩️](#index)
 
 **SITUATION:** Discovered that 3 months of shipment cost data had wrong currency conversion (used yesterday's rate instead of transaction date's rate).
 
@@ -310,7 +355,8 @@ RESULT: Quantifiable outcome + learnings
 
 ---
 
-## 📝 Tips for Behavioral Interviews
+<a id="-tips-for-behavioral-interviews"></a>
+## 📝 Tips for Behavioral Interviews [↩️](#index)
 
 ```
 1. PREPARE 2-3 STORIES per Leadership Principle

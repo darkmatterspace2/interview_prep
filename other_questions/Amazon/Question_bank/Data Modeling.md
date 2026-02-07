@@ -4,12 +4,43 @@
 
 ---
 
-## 1️⃣ Core Concepts
+<a id="index"></a>
+## 📑 Table of Contents
 
-### Q46: Fact vs Dimension — examples from logistics
+| Section | Topics |
+|---------|--------|
+| [1️⃣ Core Concepts](#1️⃣-core-concepts) | Facts, Dimensions, Normalization, Grain |
+| &nbsp;&nbsp;&nbsp;└ [Q46: Fact vs Dimension](#q46-fact-vs-dimension--examples-from-logistics) | Logistics examples |
+| &nbsp;&nbsp;&nbsp;└ [Q47: Design a shipment fact table](#q47-design-a-shipment-fact-table) | Schema design |
+| &nbsp;&nbsp;&nbsp;└ [Q48: Carrier and location dimensions](#q48-design-carrier-and-location-dimensions) | Dimension tables |
+| &nbsp;&nbsp;&nbsp;└ [Q49: Normalize vs denormalize](#q49-normalize-vs-denormalize--trade-offs) | Trade-offs |
+| &nbsp;&nbsp;&nbsp;└ [Q50: Grain of a table](#q50-grain-of-a-table--define-and-justify) | Definition & justification |
+| [2️⃣ Slowly Changing Dimensions (SCD)](#2️⃣-slowly-changing-dimensions-scd) | SCD Types, History tracking |
+| &nbsp;&nbsp;&nbsp;└ [Q51: SCD Type 1 vs Type 2](#q51-scd-type-1-vs-type-2--when-to-use) | When to use |
+| &nbsp;&nbsp;&nbsp;└ [Q52: Track carrier name changes](#q52-track-carrier-name-changes-over-time) | SCD2 implementation |
+| &nbsp;&nbsp;&nbsp;└ [Q53: Late-arriving dimension records](#q53-handle-late-arriving-dimension-records) | Handling strategies |
+| &nbsp;&nbsp;&nbsp;└ [Q54: Backfill historical data](#q54-backfill-historical-data-safely) | Safe backfill |
+| &nbsp;&nbsp;&nbsp;└ [Q55: Maintain surrogate keys](#q55-maintain-surrogate-keys) | Key generation |
+| [3️⃣ Analytics Design](#3️⃣-analytics-design) | Dashboard tables, Optimization |
+| &nbsp;&nbsp;&nbsp;└ [Q56: Dashboard reporting tables](#q56-design-tables-for-dashboard-reporting) | Pre-aggregated marts |
+| &nbsp;&nbsp;&nbsp;└ [Q57: Optimize for frequent joins](#q57-optimize-tables-for-frequent-joins) | Distribution & sort keys |
+| &nbsp;&nbsp;&nbsp;└ [Q58: Partition strategy](#q58-partition-strategy-for-time-series-data) | Time-series partitioning |
+| &nbsp;&nbsp;&nbsp;└ [Q59: Handle schema evolution](#q59-handle-schema-evolution) | Delta Lake, migrations |
+| &nbsp;&nbsp;&nbsp;└ [Q60: Cold vs hot data separation](#q60-cold-vs-hot-data-separation) | Data tiering |
+| [4️⃣ Advanced Design](#4️⃣-advanced-design-part-2-questions) | Star schema, Graph vs Relational |
+| &nbsp;&nbsp;&nbsp;└ [Star Schema for Delivery Accuracy](#star-schema-for-delivery-accuracy) | Fact table design |
+| &nbsp;&nbsp;&nbsp;└ [Graph vs Relational for Routes](#graph-vs-relational-for-route-networks) | When to use each |
+
+---
+
+<a id="1️⃣-core-concepts"></a>
+## 1️⃣ Core Concepts [↩️](#index)
+
+<a id="q46-fact-vs-dimension--examples-from-logistics"></a>
+### Q46: Fact vs Dimension — examples from logistics [↩️](#index)
 
 | Aspect | Fact Table | Dimension Table |
-|--------|-----------|-----------------|
+|--------|-----------|-----------------||
 | **Contains** | Measurable events/transactions | Descriptive attributes |
 | **Row Count** | Millions-Billions | Thousands-Millions |
 | **Changes** | Append-only (immutable events) | Updates (SCD) |
@@ -33,7 +64,8 @@ DIMENSIONS (Context/Attributes):
 
 ---
 
-### Q47: Design a shipment fact table
+<a id="q47-design-a-shipment-fact-table"></a>
+### Q47: Design a shipment fact table [↩️](#index)
 
 ```sql
 CREATE TABLE fact_shipments (
@@ -83,7 +115,8 @@ PARTITION BY RANGE (ship_date_sk);  -- Partition by date
 
 ---
 
-### Q48: Design carrier and location dimensions
+<a id="q48-design-carrier-and-location-dimensions"></a>
+### Q48: Design carrier and location dimensions [↩️](#index)
 
 ```sql
 -- CARRIER DIMENSION
@@ -143,7 +176,8 @@ CREATE TABLE dim_date (
 
 ---
 
-### Q49: Normalize vs denormalize — trade-offs
+<a id="q49-normalize-vs-denormalize--trade-offs"></a>
+### Q49: Normalize vs denormalize — trade-offs [↩️](#index)
 
 | Aspect | Normalized (3NF) | Denormalized (Star Schema) |
 |--------|------------------|---------------------------|
@@ -162,7 +196,8 @@ CREATE TABLE dim_date (
 
 ---
 
-### Q50: Grain of a table — define and justify
+<a id="q50-grain-of-a-table--define-and-justify"></a>
+### Q50: Grain of a table — define and justify [↩️](#index)
 
 **Definition:** The grain is the level of detail represented by a single row.
 
@@ -182,9 +217,11 @@ CREATE TABLE dim_date (
 
 ---
 
-## 2️⃣ Slowly Changing Dimensions (SCD)
+<a id="2️⃣-slowly-changing-dimensions-scd"></a>
+## 2️⃣ Slowly Changing Dimensions (SCD) [↩️](#index)
 
-### Q51: SCD Type 1 vs Type 2 — when to use?
+<a id="q51-scd-type-1-vs-type-2--when-to-use"></a>
+### Q51: SCD Type 1 vs Type 2 — when to use? [↩️](#index)
 
 | Type | Behavior | History | Use Case |
 |------|----------|---------|----------|
@@ -211,7 +248,8 @@ VALUES (NEW_SK(), 'FEDEX', 'FedEx Ground', CURRENT_DATE, TRUE);
 
 ---
 
-### Q52: Track carrier name changes over time
+<a id="q52-track-carrier-name-changes-over-time"></a>
+### Q52: Track carrier name changes over time [↩️](#index)
 
 ```sql
 -- SCD Type 2 Implementation
@@ -238,7 +276,8 @@ JOIN dim_carrier_scd2 c
 
 ---
 
-### Q53: Handle late-arriving dimension records
+<a id="q53-handle-late-arriving-dimension-records"></a>
+### Q53: Handle late-arriving dimension records [↩️](#index)
 
 **Scenario:** Shipment arrives before carrier is loaded to dimension.
 
@@ -267,7 +306,8 @@ WHERE carrier_id = 'FEDEX' AND is_inferred = TRUE;
 
 ---
 
-### Q54: Backfill historical data safely
+<a id="q54-backfill-historical-data-safely"></a>
+### Q54: Backfill historical data safely [↩️](#index)
 
 ```python
 # Safe Backfill Strategy
@@ -305,7 +345,8 @@ def backfill_historical_data(start_date, end_date, batch_size_days=7):
 
 ---
 
-### Q55: Maintain surrogate keys
+<a id="q55-maintain-surrogate-keys"></a>
+### Q55: Maintain surrogate keys [↩️](#index)
 
 ```sql
 -- Surrogate key generation options
@@ -348,9 +389,11 @@ WHERE NOT EXISTS (
 
 ---
 
-## 3️⃣ Analytics Design
+<a id="3️⃣-analytics-design"></a>
+## 3️⃣ Analytics Design [↩️](#index)
 
-### Q56: Design tables for dashboard reporting
+<a id="q56-design-tables-for-dashboard-reporting"></a>
+### Q56: Design tables for dashboard reporting [↩️](#index)
 
 ```sql
 -- Pre-aggregated MART for fast dashboard queries
@@ -394,7 +437,8 @@ GROUP BY carrier_name, DATE_TRUNC('week', ship_date);
 
 ---
 
-### Q57: Optimize tables for frequent joins
+<a id="q57-optimize-tables-for-frequent-joins"></a>
+### Q57: Optimize tables for frequent joins [↩️](#index)
 
 ```sql
 -- Redshift: Distribution and Sort Keys
@@ -422,7 +466,8 @@ INCLUDE (carrier_id, status);  -- Covering index
 
 ---
 
-### Q58: Partition strategy for time-series data
+<a id="q58-partition-strategy-for-time-series-data"></a>
+### Q58: Partition strategy for time-series data [↩️](#index)
 
 ```sql
 -- Range partitioning by date
@@ -462,7 +507,8 @@ df.write \
 
 ---
 
-### Q59: Handle schema evolution
+<a id="q59-handle-schema-evolution"></a>
+### Q59: Handle schema evolution [↩️](#index)
 
 ```python
 # Delta Lake: Schema evolution
@@ -494,7 +540,8 @@ ALTER TABLE fact_shipments ADD COLUMN carbon_footprint DECIMAL(10,2);
 
 ---
 
-### Q60: Cold vs hot data separation
+<a id="q60-cold-vs-hot-data-separation"></a>
+### Q60: Cold vs hot data separation [↩️](#index)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -545,9 +592,11 @@ SELECT * FROM fact_shipments_cold;    -- Older (external table)
 
 ---
 
-## 4️⃣ Advanced Design (Part 2 Questions)
+<a id="4️⃣-advanced-design-part-2-questions"></a>
+## 4️⃣ Advanced Design (Part 2 Questions) [↩️](#index)
 
-### Star Schema for Delivery Accuracy
+<a id="star-schema-for-delivery-accuracy"></a>
+### Star Schema for Delivery Accuracy [↩️](#index)
 
 ```sql
 -- FACT TABLE: Delivery Events
@@ -594,7 +643,8 @@ WHERE NOT f.is_on_time
 GROUP BY l.region, d.month_name;
 ```
 
-### Graph vs Relational for Route Networks
+<a id="graph-vs-relational-for-route-networks"></a>
+### Graph vs Relational for Route Networks [↩️](#index)
 
 | Aspect | Relational | Graph DB (Neo4j) |
 |--------|------------|------------------|

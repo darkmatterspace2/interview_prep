@@ -4,9 +4,30 @@
 
 ---
 
-## 1️⃣ Core Questions (Q101-Q105)
+<a id="index"></a>
+## 📑 Table of Contents
 
-### Q101: Key KPIs for logistics systems
+| Section | Topics |
+|---------|--------|
+| [1️⃣ Core Questions (Q101-Q105)](#1️⃣-core-questions-q101-q105) | KPIs, Efficiency, Costs, Delays |
+| &nbsp;&nbsp;&nbsp;└ [Q101: Logistics KPIs](#q101-key-kpis-for-logistics-systems) | OTIF, Fill Rate, Cycle Time |
+| &nbsp;&nbsp;&nbsp;└ [Q102: Data-driven efficiency](#q102-how-data-improves-delivery-efficiency) | Route optimization, carrier selection |
+| &nbsp;&nbsp;&nbsp;└ [Q103: Cost drivers](#q103-cost-drivers-in-transportation) | Fuel, labor, last mile |
+| &nbsp;&nbsp;&nbsp;└ [Q104: Delay metrics](#q104-metrics-to-track-delivery-delays) | Root cause tracking |
+| &nbsp;&nbsp;&nbsp;└ [Q105: Speed vs cost trade-offs](#q105-trade-offs-between-speed-and-cost) | Decision framework |
+| [2️⃣ Additional Domain Knowledge](#2️⃣-additional-domain-knowledge) | Visibility, Inventory, Network |
+| &nbsp;&nbsp;&nbsp;└ [Supply Chain Visibility](#supply-chain-visibility) | End-to-end tracking |
+| &nbsp;&nbsp;&nbsp;└ [Inventory Velocity Metrics](#inventory-velocity-metrics) | Turnover, fill rate |
+| &nbsp;&nbsp;&nbsp;└ [Network Optimization](#network-optimization) | Facility utilization |
+| [3️⃣ Interview Tips](#3️⃣-interview-tips-for-domain-questions) | Amazon-specific terms |
+
+---
+
+<a id="1️⃣-core-questions-q101-q105"></a>
+## 1️⃣ Core Questions (Q101-Q105) [↩️](#index)
+
+<a id="q101-key-kpis-for-logistics-systems"></a>
+### Q101: Key KPIs for logistics systems [↩️](#index)
 
 | KPI | Definition | Target | Why It Matters |
 |-----|------------|--------|----------------|
@@ -34,7 +55,8 @@ GROUP BY DATE_TRUNC('month', delivery_date);
 
 ---
 
-### Q102: How data improves delivery efficiency
+<a id="q102-how-data-improves-delivery-efficiency"></a>
+### Q102: How data improves delivery efficiency [↩️](#index)
 
 **Data-Driven Improvements:**
 
@@ -50,15 +72,11 @@ GROUP BY DATE_TRUNC('month', delivery_date);
 ```python
 # Example: Carrier Selection Algorithm
 def select_carrier(shipment):
-    """
-    Score carriers based on historical performance and cost
-    """
     route = (shipment['origin'], shipment['destination'])
     priority = shipment['priority']
     
     scores = []
     for carrier in available_carriers:
-        # Get historical metrics for this route
         metrics = get_carrier_metrics(carrier, route)
         
         score = (
@@ -68,7 +86,6 @@ def select_carrier(shipment):
             metrics['capacity_available'] * 0.1    # 10% weight: availability
         )
         
-        # Priority adjustments
         if priority == 'EXPRESS' and metrics['express_capable']:
             score *= 1.2
         
@@ -79,7 +96,8 @@ def select_carrier(shipment):
 
 ---
 
-### Q103: Cost drivers in transportation
+<a id="q103-cost-drivers-in-transportation"></a>
+### Q103: Cost drivers in transportation [↩️](#index)
 
 **Major Cost Components:**
 
@@ -105,23 +123,10 @@ Total Delivery Cost: $10.00 (average)
     └── Customer Contact: $0.50
 ```
 
-**Data to Track:**
-
-```sql
--- Cost per delivery by zone type
-SELECT 
-    zone_type,  -- Urban, Suburban, Rural
-    AVG(total_cost) AS avg_cost,
-    AVG(attempts) AS avg_attempts,
-    AVG(miles) AS avg_miles,
-    AVG(total_cost / NULLIF(miles, 0)) AS cost_per_mile
-FROM deliveries
-GROUP BY zone_type;
-```
-
 ---
 
-### Q104: Metrics to track delivery delays
+<a id="q104-metrics-to-track-delivery-delays"></a>
+### Q104: Metrics to track delivery delays [↩️](#index)
 
 **Delay Categories:**
 
@@ -133,22 +138,6 @@ GROUP BY zone_type;
 | **Delay Cost** | Financial impact | > $10K/day |
 | **Customer Impact Score** | Priority customers affected | Any VIP |
 
-**Root Cause Tracking:**
-
-```sql
--- Delay reason analysis
-SELECT 
-    delay_reason,
-    COUNT(*) AS delay_count,
-    AVG(delay_hours) AS avg_delay_hours,
-    SUM(estimated_cost_impact) AS total_cost
-FROM shipments
-WHERE is_delayed = TRUE
-  AND delivery_date >= CURRENT_DATE - 30
-GROUP BY delay_reason
-ORDER BY delay_count DESC;
-```
-
 **Common Delay Reasons:**
 
 | Reason | % of Delays | Mitigation |
@@ -159,11 +148,11 @@ ORDER BY delay_count DESC;
 | **Customs** | 10% | Pre-clearance, documentation automation |
 | **Address Issues** | 10% | Address validation at order time |
 | **Carrier Issues** | 10% | Performance monitoring, backup carriers |
-| **Other** | 10% | Varies |
 
 ---
 
-### Q105: Trade-offs between speed and cost
+<a id="q105-trade-offs-between-speed-and-cost"></a>
+### Q105: Trade-offs between speed and cost [↩️](#index)
 
 **Trade-off Matrix:**
 
@@ -174,39 +163,6 @@ ORDER BY delay_count DESC;
 | **2-Day (Ground Express)** | 1.5x | Standard e-commerce |
 | **Standard (Ground)** | 1x (baseline) | Non-urgent |
 | **Economy (Consolidated)** | 0.7x | Bulk, B2B, low priority |
-
-**Decision Framework:**
-
-```python
-def choose_shipping_speed(order):
-    """
-    Balance customer expectation, cost, and margin
-    """
-    margin = order['sale_price'] - order['cost']
-    customer_tier = order['customer_tier']
-    promised_sla = order['promised_delivery_days']
-    
-    # High-value customers: Prioritize speed
-    if customer_tier == 'PRIME' or margin > 100:
-        return 'NEXT_DAY'
-    
-    # Standard promise: Use cheapest that meets SLA
-    current_date = datetime.now().date()
-    required_delivery = current_date + timedelta(days=promised_sla)
-    
-    options = get_shipping_options(order['origin'], order['destination'])
-    
-    # Filter options that meet SLA
-    valid_options = [o for o in options if o['estimated_delivery'] <= required_delivery]
-    
-    if not valid_options:
-        return 'EXPRESS'  # No cheap option meets SLA, upgrade
-    
-    # Choose cheapest valid option
-    return min(valid_options, key=lambda x: x['cost'])['service_level']
-```
-
-**Cost vs Speed Visualization:**
 
 ```
 Cost ▲
@@ -225,9 +181,11 @@ Sweet Spot: 2-Day for most e-commerce
 
 ---
 
-## 2️⃣ Additional Domain Knowledge
+<a id="2️⃣-additional-domain-knowledge"></a>
+## 2️⃣ Additional Domain Knowledge [↩️](#index)
 
-### Supply Chain Visibility
+<a id="supply-chain-visibility"></a>
+### Supply Chain Visibility [↩️](#index)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -247,17 +205,13 @@ Sweet Spot: 2-Day for most e-commerce
      └────────────────┴────────────────┴───────────────┴───────────────┘
                                        │
                               ┌────────▼────────┐
-                              │  Event Stream   │
-                              │    (Kafka)      │
-                              └────────┬────────┘
-                                       │
-                              ┌────────▼────────┐
                               │   Real-time     │
                               │   Tracking DB   │
                               └─────────────────┘
 ```
 
-### Inventory Velocity Metrics
+<a id="inventory-velocity-metrics"></a>
+### Inventory Velocity Metrics [↩️](#index)
 
 | Metric | Formula | Good Target |
 |--------|---------|-------------|
@@ -267,7 +221,8 @@ Sweet Spot: 2-Day for most e-commerce
 | **Backorder Rate** | Backordered / Total Orders | < 2% |
 | **Stockout Rate** | Stockout Days / Total Days | < 1% |
 
-### Network Optimization
+<a id="network-optimization"></a>
+### Network Optimization [↩️](#index)
 
 ```sql
 -- Identify underutilized facilities
@@ -282,47 +237,25 @@ WHERE operation_date >= CURRENT_DATE - 30
 GROUP BY facility_id, facility_type, capacity_max
 HAVING utilization_pct < 50  -- Underutilized
 ORDER BY utilization_pct;
-
--- Identify best location for new facility
-WITH regional_demand AS (
-    SELECT 
-        destination_region,
-        SUM(package_count) AS total_demand,
-        AVG(transit_days) AS avg_transit
-    FROM shipments
-    GROUP BY destination_region
-)
-SELECT 
-    r.destination_region,
-    r.total_demand,
-    r.avg_transit,
-    f.nearest_facility,
-    f.distance_miles
-FROM regional_demand r
-JOIN closest_facility f ON r.destination_region = f.region
-WHERE r.avg_transit > 3  -- Areas with slow delivery
-ORDER BY r.total_demand DESC;
 ```
 
 ---
 
-## 3️⃣ Interview Tips for Domain Questions
+<a id="3️⃣-interview-tips-for-domain-questions"></a>
+## 3️⃣ Interview Tips for Domain Questions [↩️](#index)
 
 ```
 1. SHOW BUSINESS UNDERSTANDING
    ❌ "I'd track delivery time"
-   ✅ "I'd track OTIF because it combines timeliness AND completeness, 
-       which both impact customer satisfaction"
+   ✅ "I'd track OTIF because it combines timeliness AND completeness"
 
 2. CONNECT DATA TO OUTCOMES
    ❌ "We built a dashboard"
-   ✅ "Dashboard enabled operations to identify delay patterns by carrier,
-       leading to 15% improvement in on-time delivery"
+   ✅ "Dashboard enabled 15% improvement in on-time delivery"
 
 3. UNDERSTAND TRADE-OFFS
    ❌ "Faster is better"
-   ✅ "Same-day costs 5x more. We analyze margin to determine which 
-       orders justify the premium speed"
+   ✅ "Same-day costs 5x more. We analyze margin to determine which orders justify premium speed"
 
 4. MENTION SCALE
    ❌ "We processed orders"
@@ -332,7 +265,5 @@ ORDER BY r.total_demand DESC;
    • FC (Fulfillment Center)
    • DS (Delivery Station)
    • Prime Promise
-   • Ship Option
-   • Inbound/Outbound
    • Last Mile vs Middle Mile
 ```

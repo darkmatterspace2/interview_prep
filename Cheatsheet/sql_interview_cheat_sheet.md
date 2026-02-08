@@ -205,17 +205,235 @@ GROUP BY user_id;
 ---
 
 ## 7. Date Functions
-*   `CURRENT_DATE` / `NOW()` / `GETDATE()`
-*   `EXTRACT(part FROM date)` or `DATEPART`: Get Year/Month/Day. `DATEPART(year, '2023-10-25')` -> 2023.
-*   `DATEDIFF(interval, start, end)`: `DATEDIFF(day, '2023-01-01', '2023-01-10')` -> 9.
-*   `DATE_ADD(date, interval)`: `DATEADD(day, 7, '2023-01-01')` -> '2023-01-08'.
+
+### Get Current Date/Time
+| Dialect | Current Date | Current Timestamp |
+|---------|--------------|-------------------|
+| **MySQL** | `CURDATE()` or `CURRENT_DATE` | `NOW()` or `CURRENT_TIMESTAMP` |
+| **PostgreSQL** | `CURRENT_DATE` | `NOW()` or `CURRENT_TIMESTAMP` |
+| **SQL Server** | `CAST(GETDATE() AS DATE)` | `GETDATE()` |
+| **Spark SQL** | `current_date()` | `current_timestamp()` |
+
+---
+
+### Extract Parts from Date
+
+**Sample Date**: `'2026-02-08'` (Sunday)
+
+| Part | MySQL | PostgreSQL | SQL Server | Spark SQL |
+|------|-------|------------|------------|-----------|
+| **Year** | `YEAR(date)` | `EXTRACT(YEAR FROM date)` | `DATEPART(YEAR, date)` | `year(date)` |
+| **Month** | `MONTH(date)` | `EXTRACT(MONTH FROM date)` | `DATEPART(MONTH, date)` | `month(date)` |
+| **Day** | `DAY(date)` | `EXTRACT(DAY FROM date)` | `DATEPART(DAY, date)` | `day(date)` |
+| **Week** | `WEEK(date)` | `EXTRACT(WEEK FROM date)` | `DATEPART(WEEK, date)` | `weekofyear(date)` |
+| **Day of Week** | `DAYOFWEEK(date)` (1=Sun) | `EXTRACT(DOW FROM date)` (0=Sun) | `DATEPART(WEEKDAY, date)` | `dayofweek(date)` |
+| **Day of Year** | `DAYOFYEAR(date)` | `EXTRACT(DOY FROM date)` | `DATEPART(DAYOFYEAR, date)` | `dayofyear(date)` |
+| **Quarter** | `QUARTER(date)` | `EXTRACT(QUARTER FROM date)` | `DATEPART(QUARTER, date)` | `quarter(date)` |
+| **Hour** | `HOUR(ts)` | `EXTRACT(HOUR FROM ts)` | `DATEPART(HOUR, ts)` | `hour(ts)` |
+| **Minute** | `MINUTE(ts)` | `EXTRACT(MINUTE FROM ts)` | `DATEPART(MINUTE, ts)` | `minute(ts)` |
 
 ```sql
--- Find users who signed up in the last 7 days
-SELECT * FROM users
-WHERE created_at >= DATE_ADD(CURRENT_DATE, INTERVAL -7 DAY);
+-- MySQL
+SELECT 
+    YEAR('2026-02-08') as yr,        -- 2026
+    MONTH('2026-02-08') as mth,      -- 2
+    DAY('2026-02-08') as dy,         -- 8
+    WEEK('2026-02-08') as wk,        -- 6
+    DAYOFWEEK('2026-02-08') as dow;  -- 1 (Sunday)
+
+-- PostgreSQL
+SELECT 
+    EXTRACT(YEAR FROM DATE '2026-02-08') as yr,    -- 2026
+    EXTRACT(MONTH FROM DATE '2026-02-08') as mth,  -- 2
+    EXTRACT(DOW FROM DATE '2026-02-08') as dow;    -- 0 (Sunday)
 ```
-https://dev.mysql.com/doc/refman/8.4/en/date-and-time-functions.html
+
+---
+
+### Get Day Name / Month Name
+
+| Part | MySQL | PostgreSQL | SQL Server | Spark SQL |
+|------|-------|------------|------------|-----------|
+| **Day Name** | `DAYNAME(date)` | `TO_CHAR(date, 'Day')` | `DATENAME(WEEKDAY, date)` | `date_format(date, 'EEEE')` |
+| **Month Name** | `MONTHNAME(date)` | `TO_CHAR(date, 'Month')` | `DATENAME(MONTH, date)` | `date_format(date, 'MMMM')` |
+| **Short Day** | `DATE_FORMAT(date, '%a')` | `TO_CHAR(date, 'Dy')` | `LEFT(DATENAME(WEEKDAY, date), 3)` | `date_format(date, 'E')` |
+| **Short Month** | `DATE_FORMAT(date, '%b')` | `TO_CHAR(date, 'Mon')` | `LEFT(DATENAME(MONTH, date), 3)` | `date_format(date, 'MMM')` |
+
+```sql
+-- MySQL
+SELECT 
+    DAYNAME('2026-02-08') as day_name,      -- 'Sunday'
+    MONTHNAME('2026-02-08') as month_name;  -- 'February'
+
+-- PostgreSQL
+SELECT 
+    TO_CHAR(DATE '2026-02-08', 'Day') as day_name,   -- 'Sunday   '
+    TO_CHAR(DATE '2026-02-08', 'Month') as month_name; -- 'February '
+
+-- SQL Server
+SELECT 
+    DATENAME(WEEKDAY, '2026-02-08') as day_name,  -- 'Sunday'
+    DATENAME(MONTH, '2026-02-08') as month_name;  -- 'February'
+```
+
+---
+
+### Date Format Conversion
+
+| Format | MySQL | PostgreSQL | SQL Server | Spark SQL |
+|--------|-------|------------|------------|-----------|
+| **Date to String** | `DATE_FORMAT(date, format)` | `TO_CHAR(date, format)` | `FORMAT(date, format)` | `date_format(date, format)` |
+| **String to Date** | `STR_TO_DATE(str, format)` | `TO_DATE(str, format)` | `CONVERT(DATE, str, style)` | `to_date(str, format)` |
+
+**Common Format Codes:**
+| Part | MySQL | PostgreSQL | SQL Server | Spark |
+|------|-------|------------|------------|-------|
+| Year (4-digit) | `%Y` | `YYYY` | `yyyy` | `yyyy` |
+| Month (2-digit) | `%m` | `MM` | `MM` | `MM` |
+| Day (2-digit) | `%d` | `DD` | `dd` | `dd` |
+| Hour (24H) | `%H` | `HH24` | `HH` | `HH` |
+| Minute | `%i` | `MI` | `mm` | `mm` |
+| Second | `%s` | `SS` | `ss` | `ss` |
+
+```sql
+-- MySQL: Convert to 'DD-Mon-YYYY' format
+SELECT DATE_FORMAT('2026-02-08', '%d-%b-%Y');  -- '08-Feb-2026'
+
+-- PostgreSQL: Convert to 'DD/MM/YYYY' format
+SELECT TO_CHAR(DATE '2026-02-08', 'DD/MM/YYYY');  -- '08/02/2026'
+
+-- SQL Server: Convert to 'YYYY-MM-DD' format
+SELECT FORMAT(GETDATE(), 'yyyy-MM-dd');
+
+-- Spark SQL: Convert to 'MMM dd, yyyy'
+SELECT date_format(current_date(), 'MMM dd, yyyy');  -- 'Feb 08, 2026'
+```
+
+**String to Date Examples:**
+```sql
+-- MySQL
+SELECT STR_TO_DATE('08-02-2026', '%d-%m-%Y');  -- 2026-02-08
+
+-- PostgreSQL
+SELECT TO_DATE('08-02-2026', 'DD-MM-YYYY');  -- 2026-02-08
+
+-- Spark SQL
+SELECT to_date('08-02-2026', 'dd-MM-yyyy');  -- 2026-02-08
+```
+
+---
+
+### Date Arithmetic (Add/Subtract)
+
+| Operation | MySQL | PostgreSQL | SQL Server | Spark SQL |
+|-----------|-------|------------|------------|-----------|
+| **Add Days** | `DATE_ADD(date, INTERVAL n DAY)` | `date + INTERVAL 'n days'` | `DATEADD(DAY, n, date)` | `date_add(date, n)` |
+| **Add Months** | `DATE_ADD(date, INTERVAL n MONTH)` | `date + INTERVAL 'n months'` | `DATEADD(MONTH, n, date)` | `add_months(date, n)` |
+| **Add Years** | `DATE_ADD(date, INTERVAL n YEAR)` | `date + INTERVAL 'n years'` | `DATEADD(YEAR, n, date)` | `add_months(date, n*12)` |
+| **Subtract Days** | `DATE_SUB(date, INTERVAL n DAY)` | `date - INTERVAL 'n days'` | `DATEADD(DAY, -n, date)` | `date_sub(date, n)` |
+
+```sql
+-- MySQL
+SELECT 
+    DATE_ADD('2026-02-08', INTERVAL 7 DAY) as plus_week,     -- 2026-02-15
+    DATE_SUB('2026-02-08', INTERVAL 1 MONTH) as minus_month; -- 2026-01-08
+
+-- PostgreSQL
+SELECT 
+    DATE '2026-02-08' + INTERVAL '7 days' as plus_week,
+    DATE '2026-02-08' - INTERVAL '1 month' as minus_month;
+
+-- Spark SQL
+SELECT 
+    date_add('2026-02-08', 7) as plus_week,
+    add_months('2026-02-08', -1) as minus_month;
+```
+
+---
+
+### Date Difference
+
+| Dialect | Syntax | Example |
+|---------|--------|---------|
+| **MySQL** | `DATEDIFF(end, start)` (days only) | `DATEDIFF('2026-02-08', '2026-02-01')` → 7 |
+| **PostgreSQL** | `end - start` or `AGE(end, start)` | `DATE '2026-02-08' - DATE '2026-02-01'` → 7 |
+| **SQL Server** | `DATEDIFF(unit, start, end)` | `DATEDIFF(DAY, '2026-02-01', '2026-02-08')` → 7 |
+| **Spark SQL** | `datediff(end, start)` | `datediff('2026-02-08', '2026-02-01')` → 7 |
+
+```sql
+-- Days between two dates
+SELECT DATEDIFF('2026-02-08', '2026-02-01');  -- MySQL: 7
+
+-- Months between (SQL Server)
+SELECT DATEDIFF(MONTH, '2026-01-15', '2026-03-20');  -- 2
+
+-- Years between (PostgreSQL using AGE)
+SELECT EXTRACT(YEAR FROM AGE('2026-02-08', '2020-02-08'));  -- 6
+```
+
+---
+
+### Truncate Date (Get Start of Period)
+
+| Period | MySQL | PostgreSQL | SQL Server | Spark SQL |
+|--------|-------|------------|------------|-----------|
+| **Start of Month** | `DATE_FORMAT(date, '%Y-%m-01')` | `DATE_TRUNC('month', date)` | `DATEADD(MONTH, DATEDIFF(MONTH, 0, date), 0)` | `trunc(date, 'MM')` |
+| **Start of Year** | `DATE_FORMAT(date, '%Y-01-01')` | `DATE_TRUNC('year', date)` | `DATEADD(YEAR, DATEDIFF(YEAR, 0, date), 0)` | `trunc(date, 'yyyy')` |
+| **Start of Week** | `DATE_SUB(date, INTERVAL WEEKDAY(date) DAY)` | `DATE_TRUNC('week', date)` | `DATEADD(WEEK, DATEDIFF(WEEK, 0, date), 0)` | `trunc(date, 'week')` |
+
+```sql
+-- PostgreSQL: Get first day of month
+SELECT DATE_TRUNC('month', DATE '2026-02-08');  -- 2026-02-01
+
+-- Spark SQL: Get first day of year
+SELECT trunc('2026-02-08', 'yyyy');  -- 2026-01-01
+```
+
+---
+
+### Last Day of Month
+
+| Dialect | Syntax |
+|---------|--------|
+| **MySQL** | `LAST_DAY(date)` |
+| **PostgreSQL** | `(DATE_TRUNC('month', date) + INTERVAL '1 month - 1 day')::date` |
+| **SQL Server** | `EOMONTH(date)` |
+| **Spark SQL** | `last_day(date)` |
+
+```sql
+SELECT LAST_DAY('2026-02-08');  -- 2026-02-28 (MySQL/Spark)
+SELECT EOMONTH('2026-02-08');   -- 2026-02-28 (SQL Server)
+```
+
+---
+
+### Common Interview Queries
+
+```sql
+-- 1. Find users who signed up in the last 7 days
+SELECT * FROM users
+WHERE created_at >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY);  -- MySQL
+
+-- 2. Get signups by month
+SELECT 
+    DATE_FORMAT(created_at, '%Y-%m') as month,
+    COUNT(*) as signups
+FROM users
+GROUP BY DATE_FORMAT(created_at, '%Y-%m');
+
+-- 3. Find orders on weekends
+SELECT * FROM orders
+WHERE DAYOFWEEK(order_date) IN (1, 7);  -- MySQL (1=Sun, 7=Sat)
+
+-- 4. Calculate age in years
+SELECT TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) as age FROM users;  -- MySQL
+
+-- 5. Get records from same day last year
+SELECT * FROM sales
+WHERE sale_date = DATE_SUB(CURRENT_DATE, INTERVAL 1 YEAR);
+```
+
+Reference: https://dev.mysql.com/doc/refman/8.4/en/date-and-time-functions.html
 ---
 
 ## 8. Regex (Regular Expressions)

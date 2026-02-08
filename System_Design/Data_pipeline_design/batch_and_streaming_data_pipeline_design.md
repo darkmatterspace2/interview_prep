@@ -13,31 +13,41 @@ In traditional on-prem environments, compute and storage are often coupled (e.g.
 *   **Processing (ETL)**: dedicated ETL tools like SSIS (SQL Server Integration Services), Informatica, or Talend.
 *   **Storage**: Enterprise Data Warehouse (EDW) like SQL Server, Oracle Exadata, or Teradata.
 
-```mermaid
-graph LR
-    subgraph Sources
-    S1[RDBMS]
-    S2[Flat Files]
-    end
-    
-    subgraph Staging_Area
-    ST[Staging DB / File Server]
-    end
-    
-    subgraph Transformation_Layer
-    ETL[ETL Tool \n SSIS/Informatica]
-    end
-    
-    subgraph Serving_Layer
-    DW[(Data Warehouse \n Oracle/SQL Server)]
-    BI[BI Reports \n SSRS/Tableau]
-    end
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ON-PREMISE BATCH ETL PIPELINE                       │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-    S1 --> ST
-    S2 --> ST
-    ST --> ETL
-    ETL --> DW
-    DW --> BI
+  ┌──────────┐     ┌──────────┐
+  │  RDBMS   │     │  Flat    │
+  │ (Oracle) │     │  Files   │
+  └────┬─────┘     └────┬─────┘
+       │                │
+       ▼                ▼
+  ┌─────────────────────────────┐
+  │      STAGING AREA           │
+  │  (Staging DB / File Server) │
+  └──────────────┬──────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────┐
+  │     ETL TOOL                │
+  │  (SSIS / Informatica)       │
+  │  • Clean & Transform        │
+  │  • Apply Business Rules     │
+  └──────────────┬──────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────┐
+  │     DATA WAREHOUSE          │
+  │  (Oracle / SQL Server)      │
+  └──────────────┬──────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────┐
+  │     BI REPORTS              │
+  │  (SSRS / Tableau)           │
+  └─────────────────────────────┘
 ```
 
 ### B. Cloud Batch Architecture (Modern ELT)
@@ -49,31 +59,37 @@ Cloud architectures decouple compute and storage, allowing for raw data to be lo
 *   **Processing**: Distributed compute clusters like Databricks (Spark), Snowflake (SQL), or Google BigQuery.
 *   **Serving**: Lakehouse or Cloud Data Warehouse.
 
-```mermaid
-graph LR
-    subgraph Sources
-    S1[Cloud Apps]
-    S2[IoT Devices]
-    S3[On-Prem DB]
-    end
-    
-    subgraph Data_Lake_Raw
-    DL[(Data Lake \n Bronze/Raw Layer)]
-    end
-    
-    subgraph Compute_Processing
-    SP[Spark/Databricks \n Cleaning & Aggregation]
-    end
-    
-    subgraph Data_Warehouse_Serving
-    DW[(Cloud DW \n Snowflake/BigQuery)]
-    end
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CLOUD BATCH ELT PIPELINE                            │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-    S1 --> DL
-    S2 --> DL
-    S3 --> DL
-    DL --> SP
-    SP --> DW
+  ┌──────────┐    ┌──────────┐    ┌──────────┐
+  │  Cloud   │    │   IoT    │    │ On-Prem  │
+  │   Apps   │    │ Devices  │    │    DB    │
+  └────┬─────┘    └────┬─────┘    └────┬─────┘
+       │               │               │
+       └───────────────┼───────────────┘
+                       ▼
+  ┌─────────────────────────────┐
+  │     DATA LAKE (RAW)         │
+  │  Bronze Layer               │
+  │  (S3 / ADLS Gen2)           │
+  └──────────────┬──────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────┐
+  │     SPARK / DATABRICKS      │
+  │  • Cleaning                 │
+  │  • Aggregation              │
+  │  • Silver/Gold Layers       │
+  └──────────────┬──────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────┐
+  │     CLOUD DATA WAREHOUSE    │
+  │  (Snowflake / BigQuery)     │
+  └─────────────────────────────┘
 ```
 
 ---
@@ -88,31 +104,39 @@ Building streaming on-prem requires managing complex open-source heavyweights ph
 *   **Stream Processing**: Apache Spark Streaming, Apache Flink, or Apache Storm.
 *   **Storage**: HDFS (Hadoop), HBase, or Cassandra for fast writes.
 
-```mermaid
-graph LR
-    subgraph Producers
-    Logs[App Logs]
-    Sensors[Sensor Data]
-    end
-    
-    subgraph Message_Queue
-    Kafka{{Apache Kafka}}
-    end
-    
-    subgraph Stream_Processing
-    Flink[Apache Flink / \n Spark Streaming]
-    end
-    
-    subgraph Sink
-    HBase[(HBas / NoSQL)]
-    Alerts[Alerting System]
-    end
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      ON-PREMISE STREAMING PIPELINE                          │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-    Logs --> Kafka
-    Sensors --> Kafka
-    Kafka --> Flink
-    Flink --> HBase
-    Flink --> Alerts
+  ┌──────────┐     ┌──────────┐
+  │   App    │     │  Sensor  │
+  │   Logs   │     │   Data   │
+  └────┬─────┘     └────┬─────┘
+       │                │
+       └────────┬───────┘
+                ▼
+  ┌─────────────────────────────┐
+  │      APACHE KAFKA           │
+  │  (Message Queue)            │
+  │  • High Throughput          │
+  │  • Durable Storage          │
+  └──────────────┬──────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────┐
+  │     STREAM PROCESSING       │
+  │  (Flink / Spark Streaming)  │
+  │  • Windowing                │
+  │  • Aggregations             │
+  └──────────────┬──────────────┘
+                 │
+        ┌────────┴────────┐
+        ▼                 ▼
+  ┌───────────┐     ┌───────────┐
+  │  HBase /  │     │ Alerting  │
+  │   NoSQL   │     │  System   │
+  └───────────┘     └───────────┘
 ```
 
 ### B. Cloud Streaming Architecture
@@ -122,31 +146,39 @@ Cloud providers offer managed services that abstract the complexity of Kafka and
 *   **Stream Processing**: Azure Stream Analytics, AWS Kinesis Data Analytics (Flink), or Databricks Structured Streaming.
 *   **Storage**: Delta Lake (for historical analysis) and NoSQL (DynamoDB/CosmosDB for hot path).
 
-```mermaid
-graph LR
-    subgraph Event_Sources
-    Web[Web Clicks]
-    Trans[Transactions]
-    end
-    
-    subgraph Ingestion
-    EH{{Azure Event Hubs / \n AWS Kinesis}}
-    end
-    
-    subgraph Processing
-    SS[Databricks \n Structured Streaming]
-    end
-    
-    subgraph Serving
-    Delta[(Delta Lake)]
-    NoSQL[(CosmosDB / \n DynamoDB)]
-    end
-    
-    Web --> EH
-    Trans --> EH
-    EH --> SS
-    SS --> Delta
-    SS --> NoSQL
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CLOUD STREAMING PIPELINE                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────┐     ┌───────────────┐
+  │   Web    │     │ Transactions  │
+  │  Clicks  │     │    (CDC)      │
+  └────┬─────┘     └──────┬────────┘
+       │                  │
+       └────────┬─────────┘
+                ▼
+  ┌─────────────────────────────┐
+  │     EVENT HUBS / KINESIS    │
+  │  (Managed Message Broker)   │
+  │  • Auto-scaling             │
+  │  • Partitioning             │
+  └──────────────┬──────────────┘
+                 │
+                 ▼
+  ┌─────────────────────────────┐
+  │   STRUCTURED STREAMING      │
+  │  (Databricks / Stream       │
+  │   Analytics)                │
+  └──────────────┬──────────────┘
+                 │
+        ┌────────┴────────┐
+        ▼                 ▼
+  ┌───────────┐     ┌───────────┐
+  │  Delta    │     │ CosmosDB/ │
+  │   Lake    │     │ DynamoDB  │
+  │ (History) │     │ (Hot Path)│
+  └───────────┘     └───────────┘
 ```
 
 ---

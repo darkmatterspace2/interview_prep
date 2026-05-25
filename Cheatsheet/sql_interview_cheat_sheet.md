@@ -204,7 +204,7 @@ GROUP BY user_id;
 
 ---
 
-## 7. Date Functions
+### 7. Date Functions
 
 ### Get Current Date/Time
 | Dialect | Current Date | Current Timestamp |
